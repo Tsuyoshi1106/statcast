@@ -436,6 +436,11 @@ async function loadEvents(){
   var {data}=await _supabase.from("events").select("*").eq("closed",false).order("created_at",{ascending:false});
   S.events=data||[];
   g("statE").textContent=S.events.length;
+  var {data:pdata}=await _supabase.from("predictions").select("user_id");
+  if(pdata){
+    var unique=new Set(pdata.map(function(p){return p.user_id;}));
+    g("statN").textContent=unique.size;
+  }
   if(S.profile)await loadMyPreds();
   else renderMarket();
 }
