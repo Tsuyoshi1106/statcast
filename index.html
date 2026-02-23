@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatCast</title>
+<style>
+:root{--bg:#0a0e1a;--sur:#111827;--sur2:#1a2235;--acc:#00e5ff;--acc2:#7c3aed;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--tx:#e2e8f0;--mu:#64748b;--bd:rgba(255,255,255,0.08)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+nav{position:sticky;top:0;z-index:100;background:rgba(10,14,26,.95);border-bottom:1px solid var(--bd);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.logo{font-size:1.1rem;font-weight:700;color:var(--acc);letter-spacing:.1em}
+.logo span{color:var(--mu)}
+.nav-right{display:flex;align-items:center;gap:.6rem}
+.cr-badge{background:var(--sur2);border:1px solid var(--bd);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;color:var(--acc)}
+.nav-btn{background:var(--acc);color:var(--bg);border:none;padding:.4rem .9rem;border-radius:6px;font-size:.8rem;font-weight:700}
+.lang-btn{background:var(--sur2);border:1px solid var(--bd);color:var(--tx);padding:.4rem .7rem;border-radius:6px;font-size:.78rem;font-weight:600}
+.tabs{display:flex;border-bottom:1px solid var(--bd);padding:0 1rem;overflow-x:auto}
+.tab{padding:.7rem 1rem;font-size:.85rem;color:var(--mu);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;flex-shrink:0}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.tab.adm{color:var(--err)}
+.tab.adm.active{color:var(--err);border-bottom-color:var(--err)}
+.page{display:none;padding:1.2rem}
+.page.active{display:block}
+.hero{text-align:center;padding:2rem 0 1.5rem}
+.hero h1{font-size:1.6rem;font-weight:700;line-height:1.4;margin-bottom:.6rem}
+.hero h1 em{font-style:normal;color:var(--acc)}
+.hero p{color:var(--mu);font-size:.88rem;margin-bottom:1.5rem}
+.stats-row{display:flex;justify-content:center;gap:2.5rem;margin-bottom:2rem}
+.stat-num{display:block;font-size:1.6rem;font-weight:700;color:var(--acc)}
+.stat-lbl{font-size:.72rem;color:var(--mu)}
+.alert-box{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:8px;padding:.9rem;font-size:.83rem;margin-bottom:1.2rem;line-height:1.5}
+.alert-box strong{color:var(--acc)}
+.al-link{background:none;border:none;color:var(--acc);text-decoration:underline;font-size:.83rem;padding:0}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.sec-head h2{font-size:.95rem;font-weight:500}
+.filters{display:flex;gap:.4rem;flex-wrap:wrap}
+.fbtn{padding:.3rem .7rem;border-radius:20px;font-size:.75rem;border:1px solid var(--bd);background:none;color:var(--mu)}
+.fbtn.active{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.grid{display:grid;gap:.9rem}
+.mcard{background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:1.2rem}
+.mcard.done{border-color:rgba(0,229,255,.3)}
+.cmeta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+.ctag{font-size:.7rem;padding:.2rem .5rem;border-radius:4px}
+.ch{background:rgba(16,185,129,.15);color:var(--ok)}
+.ce{background:rgba(245,158,11,.15);color:var(--warn)}
+.ct{background:rgba(239,68,68,.15);color:var(--err)}
+.dl{font-size:.72rem;color:var(--mu)}
+.ctitle{font-size:.9rem;font-weight:500;margin-bottom:.9rem;line-height:1.5}
+.clbl{display:flex;justify-content:space-between;font-size:.72rem;color:var(--mu);margin-bottom:.4rem}
+.cbar{background:var(--sur2);border-radius:4px;height:6px;overflow:hidden}
+.cfill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:4px}
+.cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:.9rem}
+.pcount{font-size:.75rem;color:var(--mu)}
+.pbtn{background:transparent;border:1px solid var(--acc);color:var(--acc);padding:.35rem .8rem;border-radius:6px;font-size:.78rem}
+.pbtn.pred{border-color:var(--ok);color:var(--ok)}
+.mypred{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--bd);font-size:.78rem;color:var(--mu)}
+.mypred span{color:var(--acc);font-weight:600}
+.score-tag{margin-left:.5rem;font-size:.72rem;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);border-radius:4px;padding:.1rem .4rem;color:var(--acc)}
+.tcard{background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:1.5rem;max-width:560px;margin:0 auto}
+.tcard h2{font-size:1.05rem;font-weight:600;margin-bottom:.4rem}
+.badge{font-size:.7rem;background:var(--acc2);color:#fff;padding:.15rem .45rem;border-radius:4px;margin-left:.4rem}
+.tdesc{font-size:.82rem;color:var(--mu);margin-bottom:1rem;line-height:1.5}
+.pbar{background:var(--sur2);border-radius:4px;height:4px;margin-bottom:.4rem;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:4px;transition:width .4s}
+.ptxt{font-size:.72rem;color:var(--mu);margin-bottom:1.2rem}
+.qtxt{font-size:.9rem;line-height:1.6;margin-bottom:1rem}
+.opts{display:flex;flex-direction:column;gap:.6rem}
+.obtn{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.85rem 1rem;font-size:.85rem;text-align:left;color:var(--tx);width:100%}
+.obtn.cor{border-color:var(--ok);background:rgba(16,185,129,.1);color:var(--ok)}
+.obtn.wrg{border-color:var(--err);background:rgba(239,68,68,.1);color:var(--err)}
+.nbtn{width:100%;margin-top:1rem;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;padding:.85rem;border-radius:8px;font-size:.9rem;font-weight:700}
+.rcenter{text-align:center;padding:1rem 0}
+.ricon{font-size:2.5rem;margin-bottom:.8rem}
+.bonus{background:var(--sur2);border-radius:8px;padding:.9rem;margin:1rem 0;color:var(--acc);font-size:1.1rem;font-weight:700}
+.go-btn,.re-btn{width:100%;padding:.85rem;border-radius:8px;font-size:.9rem;font-weight:700;border:none}
+.go-btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;margin-bottom:.5rem}
+.re-btn{background:var(--sur2);border:1px solid var(--bd);color:var(--tx)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.open{opacity:1;pointer-events:all}
+.modal{background:var(--sur);border-radius:20px 20px 0 0;padding:1.5rem;width:100%;max-width:560px;transform:translateY(100%);transition:transform .3s;position:relative;padding-bottom:2.5rem}
+.ov.open .modal{transform:translateY(0)}
+.handle{width:40px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 1.2rem}
+.mtitle{font-size:.95rem;font-weight:600;margin-bottom:.4rem;line-height:1.5}
+.msrc{font-size:.78rem;color:var(--mu);margin-bottom:1.2rem}
+.ilbl{font-size:.8rem;color:var(--mu);margin-bottom:.4rem}
+.pinput{width:100%;background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.8rem 1rem;color:var(--tx);font-size:1rem;margin-bottom:1.2rem}
+.pinput:focus{outline:none;border-color:var(--acc)}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--sur2);outline:none;margin-bottom:.3rem}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--acc);box-shadow:0 0 6px rgba(0,229,255,.5)}
+.crow{display:flex;justify-content:space-between;font-size:.75rem;color:var(--mu)}
+.cval{color:var(--acc);font-weight:700}
+.msub{width:100%;margin-top:1.2rem;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;padding:.9rem;border-radius:10px;font-size:.95rem;font-weight:700}
+.mcls{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--mu);font-size:1.3rem}
+.rtbl{background:var(--sur);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.rrow{display:grid;grid-template-columns:36px 1fr 90px;padding:.85rem 1rem;border-bottom:1px solid var(--bd);align-items:center;font-size:.85rem}
+.rrow:last-child{border-bottom:none}
+.rrow.hdr{font-size:.72rem;color:var(--mu)}
+.rrow.me{background:rgba(0,229,255,.05);border-left:2px solid var(--acc)}
+.rnum{color:var(--mu);font-size:.9rem}
+.rcr{color:var(--acc);font-weight:700;text-align:right}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--sur2);border:1px solid var(--ok);border-radius:8px;padding:.7rem 1.2rem;font-size:.85rem;color:var(--ok);z-index:300;opacity:0;transition:all .3s;white-space:nowrap;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* AUTH */
+.auth-card{max-width:380px;margin:2rem auto;background:var(--sur);border:1px solid var(--bd);border-radius:16px;padding:2rem}
+.auth-card h2{font-size:1.2rem;font-weight:700;margin-bottom:.4rem;text-align:center}
+.auth-card p{font-size:.82rem;color:var(--mu);text-align:center;margin-bottom:1.5rem}
+.auth-input{width:100%;background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.8rem 1rem;color:var(--tx);font-size:.95rem;margin-bottom:.8rem}
+.auth-input:focus{outline:none;border-color:var(--acc)}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;padding:.85rem;border-radius:8px;font-size:.95rem;font-weight:700;margin-bottom:.7rem}
+.auth-switch{background:none;border:none;color:var(--acc);font-size:.83rem;text-decoration:underline;width:100%;text-align:center}
+.auth-err{color:var(--err);font-size:.8rem;margin-bottom:.7rem;text-align:center;min-height:1.2rem}
+.user-info{display:flex;align-items:center;gap:.5rem}
+.user-email{font-size:.75rem;color:var(--mu);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-nav-btn{background:none;border:1px solid var(--bd);color:var(--mu);padding:.3rem .6rem;border-radius:6px;font-size:.75rem}
+/* ADMIN */
+.adm-login{max-width:360px;margin:3rem auto;background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:2rem;text-align:center}
+.adm-login h2{font-size:1.1rem;margin-bottom:.5rem}
+.adm-login p{font-size:.82rem;color:var(--mu);margin-bottom:1.5rem}
+.adm-input{width:100%;background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.8rem 1rem;color:var(--tx);font-size:1rem;margin-bottom:1rem}
+.adm-input:focus{outline:none;border-color:var(--err)}
+.adm-login-btn{width:100%;background:var(--err);color:#fff;border:none;padding:.85rem;border-radius:8px;font-size:.9rem;font-weight:700}
+.adm-section{background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+.adm-section h3{font-size:.95rem;font-weight:600;margin-bottom:1rem;color:var(--err)}
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.2rem}
+.stat-card{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:1rem;text-align:center}
+.stat-card .big{font-size:1.8rem;font-weight:700;color:var(--acc);display:block}
+.stat-card .sm{font-size:.72rem;color:var(--mu)}
+.form-row{display:grid;gap:.7rem;margin-bottom:.7rem}
+.form-row.two{grid-template-columns:1fr 1fr}
+.flbl{font-size:.78rem;color:var(--mu);display:block;margin-bottom:.3rem}
+.fctl{width:100%;background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.7rem .9rem;color:var(--tx);font-size:.88rem}
+.fctl:focus{outline:none;border-color:var(--acc)}
+.add-btn{width:100%;background:var(--ok);color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.88rem;font-weight:700}
+.ev-list{display:flex;flex-direction:column;gap:.7rem}
+.ev-item{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:.9rem}
+.ev-title{font-size:.85rem;font-weight:500;line-height:1.4;margin-bottom:.5rem}
+.ev-badges{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem}
+.ebadge{font-size:.68rem;padding:.15rem .45rem;border-radius:4px}
+.eb-open{background:rgba(16,185,129,.15);color:var(--ok)}
+.eb-closed{background:rgba(245,158,11,.15);color:var(--warn)}
+.eb-done{background:rgba(0,229,255,.15);color:var(--acc)}
+.ev-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+.act-btn{font-size:.75rem;padding:.3rem .7rem;border-radius:6px;border:1px solid var(--bd);background:none;color:var(--tx)}
+.act-close{border-color:var(--warn);color:var(--warn)}
+.act-del{border-color:var(--err);color:var(--err)}
+.result-row{display:flex;gap:.5rem;margin-top:.6rem;align-items:center}
+.result-row input{flex:1;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:.5rem .7rem;color:var(--tx);font-size:.85rem}
+.result-row input:focus{outline:none;border-color:var(--acc)}
+.result-set-btn{background:var(--acc);color:var(--bg);border:none;padding:.5rem .9rem;border-radius:6px;font-size:.8rem;font-weight:700}
+.ev-result{font-size:.78rem;color:var(--acc);margin-top:.4rem}
+.adm-logout-btn{width:100%;background:none;border:1px solid var(--bd);color:var(--mu);padding:.6rem;border-radius:8px;font-size:.82rem;margin-top:.5rem}
+.loading{text-align:center;padding:2rem;color:var(--mu);font-size:.88rem}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">STAT<span>CAST</span></div>
+  <div class="nav-right" id="navRight">
+    <div class="cr-badge" id="crBadge">&#x26A1; 0 CR</div>
+    <button class="lang-btn" id="langBtn">EN</button>
+    <button class="nav-btn" id="navBtn">ログイン</button>
+  </div>
+</nav>
+<div class="tabs">
+  <button class="tab active" data-p="market" id="tab-market">マーケット</button>
+  <button class="tab" data-p="test" id="tab-test">エントリーテスト</button>
+  <button class="tab" data-p="ranking" id="tab-ranking">ランキング</button>
+  <button class="tab adm" data-p="admin" id="tab-admin">&#x1F512; Admin</button>
+</div>
+
+<!-- MARKET -->
+<div class="page active" id="p-market">
+  <div class="hero">
+    <h1 id="heroTitle"></h1>
+    <p id="heroDesc"></p>
+    <div class="stats-row">
+      <div><span class="stat-num" id="statN">0</span><span class="stat-lbl" id="statLbl1"></span></div>
+      <div><span class="stat-num" id="statE">0</span><span class="stat-lbl" id="statLbl2"></span></div>
+    </div>
+  </div>
+  <div class="alert-box" id="lockAlert" style="display:none">
+    <strong id="alertTitle"></strong><br>
+    <span id="alertBody"></span>
+    <button class="al-link" id="alLink"></button>
+  </div>
+  <div class="sec-head">
+    <h2 id="eventsTitle"></h2>
+    <div class="filters">
+      <button class="fbtn active" data-f="all" id="fAll"></button>
+      <button class="fbtn" data-f="health" id="fHealth"></button>
+      <button class="fbtn" data-f="economy" id="fEconomy"></button>
+      <button class="fbtn" data-f="traffic" id="fTraffic"></button>
+    </div>
+  </div>
+  <div class="grid" id="mgrid"><div class="loading">読み込み中...</div></div>
+</div>
+
+<!-- TEST -->
+<div class="page" id="p-test">
+  <div class="tcard" id="tcard">
+    <h2 id="testTitle"></h2>
+    <p class="tdesc" id="testDesc"></p>
+    <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+    <div class="ptxt" id="ptxt">0 / 5</div>
+    <div id="qarea"></div>
+    <button class="nbtn" id="nbtn" style="display:none"></button>
+  </div>
+  <div class="tcard" id="rcard" style="display:none">
+    <div class="rcenter" id="rcontent"></div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div class="page" id="p-ranking">
+  <div class="sec-head"><h2 id="rankTitle"></h2></div>
+  <div class="rtbl">
+    <div class="rrow hdr"><span>#</span><span id="rankUser"></span><span style="text-align:right">CR</span></div>
+    <div id="rrows"><div class="loading">読み込み中...</div></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="p-admin">
+  <div id="admLogin">
+    <div class="adm-login">
+      <div style="font-size:2rem;margin-bottom:.8rem">&#x1F512;</div>
+      <h2>管理者ログイン</h2>
+      <p>パスワードを入力してください</p>
+      <input type="password" class="adm-input" id="admPw" placeholder="Password">
+      <button class="adm-login-btn" id="admLoginBtn">ログイン / Login</button>
+      <p id="admErr" style="color:var(--err);font-size:.8rem;margin-top:.6rem;display:none"></p>
+    </div>
+  </div>
+  <div id="admPanel" style="display:none">
+    <div class="stat-cards">
+      <div class="stat-card"><span class="big" id="admEvCnt">0</span><span class="sm" id="admEvLbl">イベント数</span></div>
+      <div class="stat-card"><span class="big" id="admPrCnt">0</span><span class="sm" id="admPrLbl">予測数</span></div>
+    </div>
+    <div class="adm-section">
+      <h3>&#x2795; 新規イベント追加</h3>
+      <div class="form-row">
+        <div><label class="flbl">タイトル（日本語）</label><input class="fctl" id="aeJa" placeholder="例: 2025年4月 失業率の予測(%)"></div>
+      </div>
+      <div class="form-row">
+        <div><label class="flbl">Title (English)</label><input class="fctl" id="aeEn" placeholder="e.g. Apr 2025: Predict unemployment rate (%)"></div>
+      </div>
+      <div class="form-row two">
+        <div><label class="flbl">カテゴリ</label>
+          <select class="fctl" id="aeCat">
+            <option value="health">健康 / Health</option>
+            <option value="economy">経済 / Economy</option>
+            <option value="traffic">交通 / Traffic</option>
+          </select>
+        </div>
+        <div><label class="flbl">締め切り</label><input type="date" class="fctl" id="aeDl"></div>
+      </div>
+      <div class="form-row two">
+        <div><label class="flbl">単位（日本語）</label><input class="fctl" id="aeUJa" placeholder="例: 失業率(%)"></div>
+        <div><label class="flbl">Unit (English)</label><input class="fctl" id="aeUEn" placeholder="e.g. Rate (%)"></div>
+      </div>
+      <div class="form-row two">
+        <div><label class="flbl">データソース（日本語）</label><input class="fctl" id="aeSJa" placeholder="例: 総務省統計局"></div>
+        <div><label class="flbl">Source (English)</label><input class="fctl" id="aeSEn" placeholder="e.g. Statistics Bureau"></div>
+      </div>
+      <button class="add-btn" id="addEvBtn">&#xFF0B; イベントを追加 / Add Event</button>
+    </div>
+    <div class="adm-section">
+      <h3>&#x1F4CB; イベント管理</h3>
+      <div class="ev-list" id="evList"></div>
+    </div>
+    <button class="adm-logout-btn" id="admLogoutBtn">ログアウト / Logout</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="ov" id="authOv">
+  <div class="modal">
+    <div class="handle"></div>
+    <button class="mcls" id="authCls">&#x2715;</button>
+    <div id="authContent"></div>
+  </div>
+</div>
+
+<!-- PREDICT MODAL -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <div class="handle"></div>
+    <button class="mcls" id="mcls">&#x2715;</button>
+    <div class="mtitle" id="mtitle"></div>
+    <div class="msrc" id="msrc"></div>
+    <div class="ilbl" id="milbl"></div>
+    <input type="number" class="pinput" id="minput">
+    <div class="ilbl" id="confLbl"></div>
+    <input type="range" id="crange" min="0" max="100" value="50">
+    <div class="crow"><span id="confLow"></span><span class="cval" id="cval">50%</span><span id="confHigh"></span></div>
+    <button class="msub" id="msub"></button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var SB_URL = "https://nskpbpckqzsemlgatdba.supabase.co";
+var SB_KEY = "sb_publishable_RX6vk0pFjypoV5Off2W4Jg_eWXXqFkI";
+var ADMIN_PW = "statcast2025";
+
+// Supabase API helpers
+function sbFetch(path, opts) {
+  opts = opts || {};
+  var headers = Object.assign({
+    "apikey": SB_KEY,
+    "Authorization": "Bearer " + SB_KEY,
+    "Content-Type": "application/json",
+    "Prefer": opts.prefer || "return=representation"
+  }, opts.headers || {});
+  return fetch(SB_URL + "/rest/v1/" + path, {
+    method: opts.method || "GET",
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  }).then(function(r) {
+    if (r.status === 204) return [];
+    return r.json();
+  });
+}
+
+// Simple password hash (not secure, MVP only)
+function hashPw(pw) {
+  var h = 0;
+  for (var i = 0; i < pw.length; i++) { h = ((h << 5) - h) + pw.charCodeAt(i); h |= 0; }
+  return "h" + Math.abs(h).toString(16);
+}
+
+var LANG = {
+  ja: {
+    navLogin:"ログイン", navLogout:"ログアウト", langSwitch:"EN",
+    tabMarket:"マーケット", tabTest:"エントリーテスト", tabRanking:"ランキング",
+    heroTitle:"公的統計データを<br><em>予測</em>して、知識を競え",
+    heroDesc:"死亡率・景気指数・失業率など — 集合知でデータリテラシーを高める",
+    statLbl1:"参加者", statLbl2:"開催中",
+    alertTitle:"⚠ テスト未受験",
+    alertBody:"予測市場に参加するにはエントリーテストの合格が必要です。",
+    alertLink:"テストを受ける →",
+    eventsTitle:"開催中のイベント",
+    fAll:"すべて", fHealth:"健康", fEconomy:"経済", fTraffic:"交通",
+    catHealth:"健康", catEconomy:"経済", catTraffic:"交通",
+    crowd:"集合知", crowdRecruit:"予測募集中",
+    participants:"人参加", predictBtn:"予測する", predictedBtn:"✓ 予測済み",
+    myPred:"あなたの予測: ",
+    testTitle:"エントリーテスト", testFree:"無料",
+    testDesc:"統計リテラシーの基礎を確認します。全5問、合格ラインは4問正解以上です。",
+    nextQ:"次の問題 →", seeResult:"結果を見る",
+    passTitle:"合格！おめでとうございます",
+    passDesc:"問正解。予測市場への参加資格を獲得しました。",
+    bonus:"+100 CR ボーナス獲得！",
+    goMarket:"マーケットへ →",
+    failTitle:"不合格 — 再チャレンジを",
+    failDesc:"問正解。合格ラインは4問以上です。",
+    retry:"再受験する",
+    rankTitle:"ランキング", rankUser:"ユーザー", rankMe:"あなた",
+    modalSrc:"データソース: ", modalInputLbl:"予測値を入力",
+    confLbl:"確信度", confLow:"不確か", confHigh:"確信",
+    submitBtn:"予測を送信する",
+    toastNoInput:"予測値を入力してください",
+    toastNeedLogin:"ログインしてください",
+    toastNeedTest:"エントリーテストに合格してください",
+    toastSent:"✓ 予測を送信しました！ +50 CR",
+    toastAdded:"✓ イベントを追加しました",
+    toastClosed:"締め切りました",
+    toastDeleted:"削除しました",
+    toastResultSaved:"✓ 結果を入力しました",
+    toastFillAll:"全項目を入力してください",
+    toastWrongPw:"パスワードが違います",
+    toastEnterResult:"値を入力してください",
+    toastLoginOk:"✓ ログインしました",
+    toastRegOk:"✓ 登録完了！+0 CR",
+    noEvents:"イベントはまだありません",
+    statusOpen:"受付中", statusClosed:"締め切り済", statusDone:"結果入力済",
+    closeBtn:"締め切る", deleteBtn:"削除", resultPlaceholder:"実績値を入力",
+    loginTitle:"ログイン", loginDesc:"アカウントにログイン",
+    regTitle:"新規登録", regDesc:"アカウントを作成",
+    emailPlaceholder:"メールアドレス", pwPlaceholder:"パスワード",
+    loginBtn:"ログイン", regBtn:"登録する",
+    switchToReg:"アカウントをお持ちでない方 →", switchToLogin:"すでにアカウントをお持ちの方 →",
+    qOf:" / 5",
+    q:[
+      {q:"平均値（mean）と中央値（median）が大きく異なる場合、データ分布はどのような特徴を持つ可能性が高いですか？",opts:["データが正規分布している","データに外れ値（outlier）が存在する可能性がある","データ数が少なすぎる","データの単位が間違っている"],ans:1},
+      {q:"死亡率が「人口10万人あたり500人」と表記されています。これは何を意味しますか？",opts:["10万人の集団のうち500人が死亡した","500万人の死亡が記録された","死亡率は0.5%である","1と3の両方が正しい"],ans:3},
+      {q:"予測市場における「集合知（wisdom of the crowd）」とは何を指しますか？",opts:["一人の専門家の意見が最も正確","多数の参加者の予測を集約すると精度が上がる傾向","クラウドソーシングで集めたデータ","インターネット上の口コミ情報"],ans:1},
+      {q:"相関係数が0.9であることは何を示しますか？",opts:["2つの変数に因果関係がある","2つの変数に強い正の相関関係がある","一方の変数が他方を90%説明する","データの90%が正確である"],ans:1},
+      {q:"季節調整済みデータとは何ですか？",opts:["気温の影響を除いたデータ","季節的なパターンの影響を取り除いて長期トレンドを見やすくしたデータ","毎年同じ季節に収集されたデータ","冬季限定で収集されるデータ"],ans:1}
+    ]
+  },
+  en: {
+    navLogin:"Login", navLogout:"Logout", langSwitch:"JP",
+    tabMarket:"Market", tabTest:"Entry Test", tabRanking:"Ranking",
+    heroTitle:"<em>Predict</em> Public Statistics<br>and Compete with Knowledge",
+    heroDesc:"Mortality rates, economic indices, unemployment — improve data literacy through collective intelligence",
+    statLbl1:"Participants", statLbl2:"Active Events",
+    alertTitle:"⚠ Test Required",
+    alertBody:"You must pass the entry test to participate.",
+    alertLink:"Take the test →",
+    eventsTitle:"Active Events",
+    fAll:"All", fHealth:"Health", fEconomy:"Economy", fTraffic:"Traffic",
+    catHealth:"Health", catEconomy:"Economy", catTraffic:"Traffic",
+    crowd:"Crowd Forecast", crowdRecruit:"Accepting Predictions",
+    participants:" participants", predictBtn:"Predict", predictedBtn:"✓ Predicted",
+    myPred:"Your prediction: ",
+    testTitle:"Entry Test", testFree:"Free",
+    testDesc:"Test your statistical literacy. 5 questions, passing score is 4 or more correct.",
+    nextQ:"Next Question →", seeResult:"See Results",
+    passTitle:"Passed! Congratulations!",
+    passDesc:" correct. You have earned access to the prediction market.",
+    bonus:"+100 CR Bonus Earned!",
+    goMarket:"Go to Market →",
+    failTitle:"Failed — Try Again",
+    failDesc:" correct. You need at least 4 to pass.",
+    retry:"Retry Test",
+    rankTitle:"Ranking", rankUser:"User", rankMe:"You",
+    modalSrc:"Data source: ", modalInputLbl:"Enter your prediction",
+    confLbl:"Confidence", confLow:"Uncertain", confHigh:"Certain",
+    submitBtn:"Submit Prediction",
+    toastNoInput:"Please enter a prediction value",
+    toastNeedLogin:"Please log in first",
+    toastNeedTest:"Please pass the entry test first",
+    toastSent:"✓ Prediction submitted! +50 CR",
+    toastAdded:"✓ Event added",
+    toastClosed:"Event closed",
+    toastDeleted:"Deleted",
+    toastResultSaved:"✓ Result saved",
+    toastFillAll:"Please fill all required fields",
+    toastWrongPw:"Wrong password",
+    toastEnterResult:"Please enter a value",
+    toastLoginOk:"✓ Logged in",
+    toastRegOk:"✓ Registered!",
+    noEvents:"No events yet",
+    statusOpen:"Open", statusClosed:"Closed", statusDone:"Result Set",
+    closeBtn:"Close", deleteBtn:"Delete", resultPlaceholder:"Enter result",
+    loginTitle:"Login", loginDesc:"Sign in to your account",
+    regTitle:"Register", regDesc:"Create a new account",
+    emailPlaceholder:"Email address", pwPlaceholder:"Password",
+    loginBtn:"Login", regBtn:"Register",
+    switchToReg:"Don't have an account? →", switchToLogin:"Already have an account? →",
+    qOf:" / 5",
+    q:[
+      {q:"When the mean and median differ greatly, what does this suggest about the data distribution?",opts:["The data follows a normal distribution","The data likely contains outliers","The sample size is too small","The unit of measurement is incorrect"],ans:1},
+      {q:"A mortality rate of '500 per 100,000 people' means:",opts:["500 people died out of a group of 100,000","5 million deaths were recorded","The mortality rate is 0.5%","Both 1 and 3 are correct"],ans:3},
+      {q:"What does 'wisdom of the crowd' mean in prediction markets?",opts:["One expert's opinion is most accurate","Aggregating many predictions tends to improve accuracy","Data collected via crowdsourcing","Online reviews and opinions"],ans:1},
+      {q:"A correlation coefficient of 0.9 indicates:",opts:["A causal relationship between two variables","A strong positive correlation between two variables","One variable explains 90% of the other","90% of the data is accurate"],ans:1},
+      {q:"What is seasonally adjusted data?",opts:["Data with temperature effects removed","Data with seasonal patterns removed to reveal long-term trends","Data collected in the same season every year","Data collected only in winter"],ans:1}
+    ]
+  }
+};
+
+var S = {
+  lang: "ja", filter: "all", curM: null, qi: 0, score: 0, answered: false,
+  user: null, // {id, email, credits, passed_test}
+  adminLoggedIn: false, events: [], myPreds: {}
+};
+
+function g(id){ return document.getElementById(id); }
+function T(){ return LANG[S.lang]; }
+
+function showToast(msg, isErr) {
+  var t = g("toast");
+  t.textContent = msg;
+  t.style.borderColor = isErr ? "var(--err)" : "var(--ok)";
+  t.style.color = isErr ? "var(--err)" : "var(--ok)";
+  t.className = "toast show";
+  setTimeout(function(){ t.className = "toast"; }, 3000);
+}
+
+function updateNavUser() {
+  var t = T();
+  var nr = g("navRight");
+  if (S.user) {
+    g("crBadge").textContent = "⚡ " + S.user.credits + " CR";
+    g("navBtn").textContent = t.navLogout;
+    // Show alert if not passed
+    if (!S.user.passed_test) {
+      g("lockAlert").style.display = "block";
+    } else {
+      g("lockAlert").style.display = "none";
+    }
+  } else {
+    g("crBadge").textContent = "⚡ 0 CR";
+    g("navBtn").textContent = t.navLogin;
+    g("lockAlert").style.display = "none";
+  }
+}
+
+function showPage(n) {
+  document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
+  document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("active"); });
+  g("p-" + n).classList.add("active");
+  document.querySelectorAll(".tab").forEach(function(t){ if(t.dataset.p === n) t.classList.add("active"); });
+  if (n === "ranking") loadRanking();
+  if (n === "market") loadEvents();
+}
+
+function applyLang() {
+  var t = T();
+  document.documentElement.lang = S.lang;
+  g("langBtn").textContent = t.langSwitch;
+  g("tab-market").textContent = t.tabMarket;
+  g("tab-test").textContent = t.tabTest;
+  g("tab-ranking").textContent = t.rankTitle;
+  g("heroTitle").innerHTML = t.heroTitle;
+  g("heroDesc").textContent = t.heroDesc;
+  g("statLbl1").textContent = t.statLbl1;
+  g("statLbl2").textContent = t.statLbl2;
+  g("alertTitle").textContent = t.alertTitle;
+  g("alertBody").textContent = t.alertBody;
+  g("alLink").textContent = t.alertLink;
+  g("eventsTitle").textContent = t.eventsTitle;
+  g("fAll").textContent = t.fAll;
+  g("fHealth").textContent = t.fHealth;
+  g("fEconomy").textContent = t.fEconomy;
+  g("fTraffic").textContent = t.fTraffic;
+  g("testTitle").innerHTML = t.testTitle + "<span class=\"badge\">" + t.testFree + "</span>";
+  g("testDesc").textContent = t.testDesc;
+  g("rankTitle").textContent = t.rankTitle;
+  g("rankUser").textContent = t.rankUser;
+  g("confLbl").textContent = t.confLbl;
+  g("confLow").textContent = t.confLow;
+  g("confHigh").textContent = t.confHigh;
+  g("msub").textContent = t.submitBtn;
+  updateNavUser();
+  renderMarket();
+  if (g("rcard").style.display === "none") renderQ();
+}
+
+// LOAD EVENTS from Supabase
+function loadEvents() {
+  sbFetch("events?closed=eq.false&order=created_at.desc").then(function(rows) {
+    S.events = rows || [];
+    g("statE").textContent = S.events.length;
+    if (S.user) loadMyPredictions();
+    else renderMarket();
+  }).catch(function(){ renderMarket(); });
+}
+
+function loadMyPredictions() {
+  if (!S.user) { renderMarket(); return; }
+  sbFetch("predictions?user_id=eq." + S.user.id + "&select=event_id,value,score").then(function(rows) {
+    S.myPreds = {};
+    (rows || []).forEach(function(r){ S.myPreds[r.event_id] = {v: r.value, score: r.score}; });
+    renderMarket();
+  }).catch(function(){ renderMarket(); });
+}
+
+function loadRanking() {
+  sbFetch("users?select=email,credits&order=credits.desc&limit=20").then(function(rows) {
+    var t = T();
+    if (!rows || !rows.length) { g("rrows").innerHTML = "<div class=\"loading\">" + t.noEvents + "</div>"; return; }
+    g("rrows").innerHTML = rows.map(function(r, i){
+      var isMe = S.user && r.email === S.user.email;
+      var medals = ["🥇","🥈","🥉"];
+      return "<div class=\"rrow" + (isMe ? " me" : "") + "\">"
+        + "<span class=\"rnum\">" + (medals[i] || i+1) + "</span>"
+        + "<span>" + r.email.split("@")[0] + (isMe ? " (" + t.rankMe + ")" : "") + "</span>"
+        + "<span class=\"rcr\">" + r.credits + " CR</span></div>";
+    }).join("");
+  });
+}
+
+function renderMarket() {
+  var t = T();
+  var list = S.filter === "all" ? S.events : S.events.filter(function(m){ return m.category === S.filter; });
+  g("statN").textContent = S.events.length; // approximation
+  if (!list.length) {
+    g("mgrid").innerHTML = "<div class=\"loading\">" + (S.lang==="ja"?"イベントはまだありません":"No events yet") + "</div>";
+    return;
+  }
+  var cl_map = {health: t.catHealth, economy: t.catEconomy, traffic: t.catTraffic};
+  var cc_map = {health: "ch", economy: "ce", traffic: "ct"};
+  g("mgrid").innerHTML = list.map(function(m) {
+    var d = S.myPreds[m.id];
+    var cl = cl_map[m.category] || m.category;
+    var cc = cc_map[m.category] || "ch";
+    return "<div class=\"mcard" + (d ? " done" : "") + "\">"
+      + "<div class=\"cmeta\"><span class=\"ctag " + cc + "\">" + cl + "</span><span class=\"dl\">〆 " + m.deadline + "</span></div>"
+      + "<div class=\"ctitle\">" + (S.lang==="ja" ? m.title_ja : m.title_en) + "</div>"
+      + "<div class=\"clbl\"><span>" + t.crowd + "</span><span>" + t.crowdRecruit + "</span></div>"
+      + "<div class=\"cbar\"><div class=\"cfill\" style=\"width:50%\"></div></div>"
+      + "<div class=\"cfoot\"><span class=\"pcount\">👥 " + (d?1:0) + (S.lang==="ja"?t.participants:t.participants) + "</span>"
+      + "<button class=\"pbtn" + (d?" pred":"") + "\" data-mid=\"" + m.id + "\">" + (d?t.predictedBtn:t.predictBtn) + "</button></div>"
+      + (d ? "<div class=\"mypred\">" + t.myPred + "<span>" + d.v + "</span>"
+        + (d.score ? "<span class=\"score-tag\">+" + d.score + " CR</span>" : "") + "</div>" : "")
+      + "</div>";
+  }).join("");
+}
+
+// TEST
+function renderQ() {
+  var t = T();
+  var q = t.q[S.qi];
+  g("pfill").style.width = (S.qi/5*100) + "%";
+  g("ptxt").textContent = S.qi + t.qOf;
+  g("qarea").innerHTML = "<p class=\"qtxt\"><strong>Q" + (S.qi+1) + ".</strong> " + q.q + "</p>"
+    + "<div class=\"opts\">" + q.opts.map(function(o,i){
+      return "<button class=\"obtn\" data-i=\"" + i + "\">" + o + "</button>";
+    }).join("") + "</div>";
+  g("nbtn").style.display = "none";
+  g("nbtn").textContent = t.nextQ;
+  S.answered = false;
+}
+
+function handleAns(i) {
+  if (S.answered) return;
+  S.answered = true;
+  var q = T().q[S.qi];
+  document.querySelectorAll(".obtn").forEach(function(b){
+    var bi = parseInt(b.dataset.i);
+    if (bi === q.ans) b.classList.add("cor");
+    else if (bi === i) b.classList.add("wrg");
+  });
+  if (i === q.ans) S.score++;
+  var nb = g("nbtn");
+  nb.style.display = "block";
+  nb.textContent = S.qi < 4 ? T().nextQ : T().seeResult;
+}
+
+function showResult() {
+  var t = T();
+  g("tcard").style.display = "none";
+  g("rcard").style.display = "block";
+  var ok = S.score >= 4;
+  if (ok && S.user) {
+    sbFetch("users?id=eq." + S.user.id, {
+      method: "PATCH", body: {passed_test: true, credits: S.user.credits + 100}
+    }).then(function(){
+      S.user.passed_test = true;
+      S.user.credits += 100;
+      updateNavUser();
+    });
+  }
+  var rc = g("rcontent");
+  if (ok) {
+    rc.innerHTML = "<div class=\"ricon\">🎉</div><h2 style=\"color:var(--ok)\">" + t.passTitle + "</h2>"
+      + "<p style=\"color:var(--mu);font-size:.85rem;margin:.5rem 0 1rem\">" + S.score + t.passDesc + "</p>"
+      + "<div class=\"bonus\">" + t.bonus + "</div>"
+      + "<button class=\"go-btn\" id=\"goBtn\">" + t.goMarket + "</button>";
+    g("goBtn").addEventListener("click", function(){ showPage("market"); });
+  } else {
+    rc.innerHTML = "<div class=\"ricon\">📊</div><h2 style=\"color:var(--warn)\">" + t.failTitle + "</h2>"
+      + "<p style=\"color:var(--mu);font-size:.85rem;margin:.5rem 0 1rem\">" + S.score + t.failDesc + "</p>"
+      + "<button class=\"re-btn\" id=\"reBtn\">" + t.retry + "</button>";
+    g("reBtn").addEventListener("click", function(){
+      S.qi=0; S.score=0;
+      g("tcard").style.display="block"; g("rcard").style.display="none";
+      renderQ();
+    });
+  }
+}
+
+// AUTH
+function showAuthModal(mode) {
+  var t = T();
+  var isLogin = mode !== "register";
+  g("authContent").innerHTML = "<h2 style=\"text-align:center;margin-bottom:.3rem\">" + (isLogin?t.loginTitle:t.regTitle) + "</h2>"
+    + "<p style=\"text-align:center;font-size:.82rem;color:var(--mu);margin-bottom:1.2rem\">" + (isLogin?t.loginDesc:t.regDesc) + "</p>"
+    + "<p class=\"auth-err\" id=\"authErr\"></p>"
+    + "<input class=\"auth-input\" type=\"email\" id=\"authEmail\" placeholder=\"" + t.emailPlaceholder + "\">"
+    + "<input class=\"auth-input\" type=\"password\" id=\"authPw\" placeholder=\"" + t.pwPlaceholder + "\">"
+    + "<button class=\"auth-btn\" id=\"authSubmit\">" + (isLogin?t.loginBtn:t.regBtn) + "</button>"
+    + "<button class=\"auth-switch\" id=\"authSwitch\">" + (isLogin?t.switchToReg:t.switchToLogin) + "</button>";
+  g("authOv").classList.add("open");
+  g("authSubmit").addEventListener("click", function(){
+    var email = g("authEmail").value.trim();
+    var pw = g("authPw").value;
+    var errEl = g("authErr");
+    if (!email || !pw) { errEl.textContent = t.toastFillAll; return; }
+    var hash = hashPw(pw);
+    if (isLogin) {
+      sbFetch("users?email=eq." + encodeURIComponent(email) + "&password_hash=eq." + hash).then(function(rows){
+        if (!rows || !rows.length) { errEl.textContent = S.lang==="ja"?"メールアドレスまたはパスワードが違います":"Invalid email or password"; return; }
+        S.user = rows[0];
+        g("authOv").classList.remove("open");
+        updateNavUser();
+        loadEvents();
+        showToast(t.toastLoginOk);
+      });
+    } else {
+      sbFetch("users?email=eq." + encodeURIComponent(email)).then(function(rows){
+        if (rows && rows.length) { errEl.textContent = S.lang==="ja"?"このメールアドレスは既に登録されています":"Email already registered"; return; }
+        return sbFetch("users", {method:"POST", body:{email:email, password_hash:hash, credits:0, passed_test:false}}).then(function(res){
+          S.user = Array.isArray(res) ? res[0] : res;
+          g("authOv").classList.remove("open");
+          updateNavUser();
+          loadEvents();
+          showToast(t.toastRegOk);
+        });
+      });
+    }
+  });
+  g("authSwitch").addEventListener("click", function(){ showAuthModal(isLogin?"register":"login"); });
+  g("authEmail").focus();
+}
+
+// PREDICT MODAL
+function openModal(mid) {
+  var t = T();
+  if (!S.user) { showToast(t.toastNeedLogin, true); showAuthModal("login"); return; }
+  if (!S.user.passed_test) { showToast(t.toastNeedTest, true); showPage("test"); return; }
+  var m = S.events.find(function(x){ return x.id == mid; });
+  if (!m) return;
+  S.curM = m;
+  g("mtitle").textContent = S.lang==="ja" ? m.title_ja : m.title_en;
+  g("msrc").textContent = t.modalSrc + (S.lang==="ja" ? m.source_ja : m.source_en);
+  g("milbl").textContent = t.modalInputLbl + " (" + (S.lang==="ja" ? m.unit_ja : m.unit_en) + ")";
+  g("minput").value = S.myPreds[mid] ? S.myPreds[mid].v : "";
+  g("crange").value = 50; g("cval").textContent = "50%";
+  g("ov").classList.add("open");
+}
+function closeModal(){ g("ov").classList.remove("open"); }
+
+// ADMIN
+function renderAdminEvents() {
+  sbFetch("events?order=created_at.desc").then(function(rows){
+    var t = T();
+    if (!rows || !rows.length) {
+      g("evList").innerHTML = "<p style=\"color:var(--mu);font-size:.85rem;text-align:center;padding:1rem\">" + t.noEvents + "</p>";
+      g("admEvCnt").textContent = 0; return;
+    }
+    g("admEvCnt").textContent = rows.length;
+    g("evList").innerHTML = rows.map(function(ev, idx){
+      var title = S.lang==="ja" ? ev.title_ja : ev.title_en;
+      var statusBadge = ev.result
+        ? "<span class=\"ebadge eb-done\">" + t.statusDone + "</span>"
+        : ev.closed
+          ? "<span class=\"ebadge eb-closed\">" + t.statusClosed + "</span>"
+          : "<span class=\"ebadge eb-open\">" + t.statusOpen + "</span>";
+      var resultDisplay = ev.result ? "<div class=\"ev-result\">Result: " + ev.result + "</div>" : "";
+      var resultInput = ev.closed && !ev.result
+        ? "<div class=\"result-row\"><input type=\"number\" id=\"ri" + ev.id + "\" placeholder=\"" + t.resultPlaceholder + "\"><button class=\"result-set-btn\" data-evid=\"" + ev.id + "\">SET</button></div>" : "";
+      var closeBtn = !ev.closed ? "<button class=\"act-btn act-close\" data-cid=\"" + ev.id + "\">" + t.closeBtn + "</button>" : "";
+      return "<div class=\"ev-item\">"
+        + "<div class=\"ev-title\">" + title + "</div>"
+        + "<div class=\"ev-badges\">" + statusBadge + "<span class=\"ebadge\" style=\"background:var(--sur);border:1px solid var(--bd)\">〆 " + ev.deadline + "</span></div>"
+        + resultDisplay + resultInput
+        + "<div class=\"ev-actions\">" + closeBtn
+        + "<button class=\"act-btn act-del\" data-did=\"" + ev.id + "\">" + t.deleteBtn + "</button>"
+        + "</div></div>";
+    }).join("");
+  });
+  sbFetch("predictions?select=id").then(function(r){ g("admPrCnt").textContent = r ? r.length : 0; });
+}
+
+// Score calc when result is set
+function calcAndSaveScores(evId, resultVal) {
+  sbFetch("predictions?event_id=eq." + evId).then(function(preds){
+    if (!preds || !preds.length) return;
+    var promises = preds.map(function(pred){
+      var predVal = parseFloat(pred.value);
+      var actual = parseFloat(resultVal);
+      var err = actual !== 0 ? Math.abs((predVal-actual)/actual)*100 : Math.abs(predVal-actual)*100;
+      var cr = err<=5?200:err<=10?100:err<=20?50:10;
+      return sbFetch("predictions?id=eq." + pred.id, {method:"PATCH", body:{score:cr}}).then(function(){
+        return sbFetch("users?id=eq." + pred.user_id, {method:"GET"}).then(function(users){
+          if (!users || !users.length) return;
+          var newCr = users[0].credits + cr;
+          return sbFetch("users?id=eq." + pred.user_id, {method:"PATCH", body:{credits:newCr}});
+        });
+      });
+    });
+    Promise.all(promises).then(function(){
+      if (S.user) {
+        sbFetch("users?id=eq." + S.user.id).then(function(r){
+          if (r && r[0]) { S.user.credits = r[0].credits; updateNavUser(); }
+        });
+        loadMyPredictions();
+      }
+    });
+  });
+}
+
+// EVENT LISTENERS
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.addEventListener("click", function(){ showPage(this.dataset.p); });
+});
+
+g("navBtn").addEventListener("click", function(){
+  if (S.user) {
+    S.user = null; S.myPreds = {};
+    updateNavUser(); renderMarket();
+    showToast(T().navLogout);
+  } else {
+    showAuthModal("login");
+  }
+});
+
+g("langBtn").addEventListener("click", function(){
+  S.lang = S.lang==="ja"?"en":"ja";
+  S.qi=0; S.score=0; S.answered=false;
+  g("tcard").style.display="block"; g("rcard").style.display="none";
+  applyLang();
+});
+
+g("alLink").addEventListener("click", function(){ showPage("test"); });
+g("authCls").addEventListener("click", function(){ g("authOv").classList.remove("open"); });
+g("authOv").addEventListener("click", function(e){ if(e.target===this) this.classList.remove("open"); });
+
+document.querySelectorAll(".fbtn").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll(".fbtn").forEach(function(x){ x.classList.remove("active"); });
+    this.classList.add("active"); S.filter=this.dataset.f; renderMarket();
+  });
+});
+
+g("mgrid").addEventListener("click", function(e){
+  var b = e.target.closest(".pbtn");
+  if (b) openModal(b.dataset.mid);
+});
+
+g("qarea").addEventListener("click", function(e){
+  var b = e.target.closest(".obtn");
+  if (b && !S.answered) handleAns(parseInt(b.dataset.i));
+});
+
+g("nbtn").addEventListener("click", function(){
+  S.qi++;
+  if (S.qi>=5) showResult(); else renderQ();
+});
+
+g("mcls").addEventListener("click", closeModal);
+g("ov").addEventListener("click", function(e){ if(e.target===this) closeModal(); });
+g("crange").addEventListener("input", function(){ g("cval").textContent=this.value+"%"; });
+
+g("msub").addEventListener("click", function(){
+  var v = g("minput").value;
+  if (!v) { showToast(T().toastNoInput, true); return; }
+  var m = S.curM;
+  var existing = S.myPreds[m.id];
+  var method = existing ? "PATCH" : "POST";
+  var path = existing ? "predictions?user_id=eq."+S.user.id+"&event_id=eq."+m.id : "predictions";
+  var body = existing
+    ? {value:v, confidence:parseInt(g("crange").value)}
+    : {user_id:S.user.id, event_id:m.id, value:v, confidence:parseInt(g("crange").value)};
+  sbFetch(path, {method:method, body:body}).then(function(){
+    if (!existing) {
+      S.user.credits += 50;
+      sbFetch("users?id=eq."+S.user.id, {method:"PATCH", body:{credits:S.user.credits}});
+      updateNavUser();
+    }
+    S.myPreds[m.id] = {v:v};
+    closeModal(); renderMarket();
+    showToast(T().toastSent);
+  });
+});
+
+// ADMIN
+g("admLoginBtn").addEventListener("click", function(){
+  if (g("admPw").value === ADMIN_PW) {
+    S.adminLoggedIn=true;
+    g("admLogin").style.display="none";
+    g("admPanel").style.display="block";
+    g("admErr").style.display="none";
+    renderAdminEvents();
+  } else {
+    g("admErr").textContent=T().toastWrongPw;
+    g("admErr").style.display="block";
+    g("admPw").value="";
+  }
+});
+g("admPw").addEventListener("keydown", function(e){ if(e.key==="Enter") g("admLoginBtn").click(); });
+g("admLogoutBtn").addEventListener("click", function(){
+  S.adminLoggedIn=false;
+  g("admLogin").style.display="block"; g("admPanel").style.display="none"; g("admPw").value="";
+});
+
+g("addEvBtn").addEventListener("click", function(){
+  var tJa=g("aeJa").value.trim(), tEn=g("aeEn").value.trim(), dl=g("aeDl").value;
+  if (!tJa||!tEn||!dl) { showToast(T().toastFillAll, true); return; }
+  sbFetch("events", {method:"POST", body:{
+    title_ja:tJa, title_en:tEn, category:g("aeCat").value, deadline:dl,
+    unit_ja:g("aeUJa").value||"値", unit_en:g("aeUEn").value||"Value",
+    source_ja:g("aeSJa").value||"—", source_en:g("aeSEn").value||"—",
+    closed:false, result:null
+  }}).then(function(){
+    ["aeJa","aeEn","aeUJa","aeUEn","aeSJa","aeSEn","aeDl"].forEach(function(id){ g(id).value=""; });
+    renderAdminEvents(); loadEvents();
+    showToast(T().toastAdded);
+  });
+});
+
+g("evList").addEventListener("click", function(e){
+  var cb = e.target.closest("[data-cid]");
+  if (cb) {
+    sbFetch("events?id=eq."+cb.dataset.cid, {method:"PATCH", body:{closed:true}}).then(function(){
+      renderAdminEvents(); loadEvents(); showToast(T().toastClosed);
+    }); return;
+  }
+  var db = e.target.closest("[data-did]");
+  if (db) {
+    sbFetch("events?id=eq."+db.dataset.did, {method:"DELETE", prefer:"return=minimal"}).then(function(){
+      renderAdminEvents(); loadEvents(); showToast(T().toastDeleted);
+    }); return;
+  }
+  var rb = e.target.closest("[data-evid]");
+  if (rb) {
+    var evId = rb.dataset.evid;
+    var inp = g("ri"+evId);
+    if (!inp||!inp.value) { showToast(T().toastEnterResult, true); return; }
+    sbFetch("events?id=eq."+evId, {method:"PATCH", body:{result:inp.value, closed:true}}).then(function(){
+      calcAndSaveScores(evId, inp.value);
+      renderAdminEvents(); loadEvents();
+      showToast(T().toastResultSaved);
+    });
+  }
+});
+
+// INIT
+applyLang();
+loadEvents();
+</script>
+</body>
+</html>
