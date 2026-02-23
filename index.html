@@ -672,7 +672,9 @@ g("msub").addEventListener("click",async function(){
     await _supabase.from("profiles").update({credits:newCr}).eq("id",S.profile.id);
     S.profile.credits=newCr;updateNav();
   }
-  S.myPreds[m.id]={v:v};closeModal();renderMarket();showToast(T().toastSent);
+  S.myPreds[m.id]={v:v};closeModal();
+  await loadMyPreds();
+  showToast(T().toastSent);
 });
 
 g("admLoginBtn").addEventListener("click",function(){
