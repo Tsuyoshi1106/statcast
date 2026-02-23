@@ -538,10 +538,14 @@ function showAuthModal(mode){
     } else {
       var {data,error}=await _supabase.auth.signUp({email:email,password:pw});
       if(error){errEl.textContent=error.message;return;}
-      if(data.user){
-        await loadProfile(data.user);
+      var authUser=data&&data.user?data.user:null;
+      if(!authUser&&data&&data.session){authUser=data.session.user;}
+      if(authUser){
+        await loadProfile(authUser);
         g("authOv").classList.remove("open");
         showToast(t.toastRegOk);loadEvents();
+      } else {
+        errEl.textContent=S.lang==="ja"?"登録に失敗しました。もう一度お試しください":"Registration failed. Please try again.";
       }
     }
   });
@@ -551,15 +555,19 @@ function showAuthModal(mode){
 
 async function loadProfile(user){
   if(!user){S.profile=null;updateNav();return;}
-  var {data,error}=await _supabase.from("profiles").select("*").eq("id",user.id).single();
-  if(!data){
-    // Auto-create profile if missing (trigger was removed)
-    var {data:created}=await _supabase.from("profiles").insert({
-      id:user.id, email:user.email, credits:0, passed_test:false
-    }).select().single();
-    S.profile=created;
-  } else {
-    S.profile=data;
+  try {
+    var {data}=await _supabase.from("profiles").select("*").eq("id",user.id);
+    if(data&&data.length>0){
+      S.profile=data[0];
+    } else {
+      // Create profile if not exists
+      var {data:ins}=await _supabase.from("profiles").insert([
+        {id:user.id,email:user.email,credits:0,passed_test:false}
+      ]).select();
+      S.profile=(ins&&ins.length>0)?ins[0]:{id:user.id,email:user.email,credits:0,passed_test:false};
+    }
+  } catch(e){
+    S.profile={id:user.id,email:user.email,credits:0,passed_test:false};
   }
   updateNav();
 }
