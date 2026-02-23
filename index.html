@@ -500,7 +500,7 @@ async function showResult(){
   g("tcard").style.display="none";g("rcard").style.display="block";
   var ok=S.score>=4;
   if(ok&&S.profile&&!S.profile.passed_test){
-    var newCr=S.profile.credits+100;
+    var newCr=(S.profile.credits||0)+100;
     await _supabase.from("profiles").update({passed_test:true,credits:newCr}).eq("id",S.profile.id);
     S.profile.passed_test=true;S.profile.credits=newCr;updateNav();
   }
@@ -551,8 +551,17 @@ function showAuthModal(mode){
 
 async function loadProfile(user){
   if(!user){S.profile=null;updateNav();return;}
-  var {data}=await _supabase.from("profiles").select("*").eq("id",user.id).single();
-  S.profile=data;updateNav();
+  var {data,error}=await _supabase.from("profiles").select("*").eq("id",user.id).single();
+  if(!data){
+    // Auto-create profile if missing (trigger was removed)
+    var {data:created}=await _supabase.from("profiles").insert({
+      id:user.id, email:user.email, credits:0, passed_test:false
+    }).select().single();
+    S.profile=created;
+  } else {
+    S.profile=data;
+  }
+  updateNav();
 }
 
 async function openModal(mid){
