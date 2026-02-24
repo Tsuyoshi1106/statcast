@@ -144,6 +144,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .ev-result{font-size:.78rem;color:var(--acc);margin-top:.4rem}
 .adm-logout-btn{width:100%;background:none;border:1px solid var(--bd);color:var(--mu);padding:.6rem;border-radius:8px;font-size:.82rem;margin-top:.5rem}
 .loading{text-align:center;padding:2rem;color:var(--mu);font-size:.88rem}
+
+.hist-section{margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--bd)}
+.hist-title{font-size:.72rem;color:var(--mu);margin-bottom:.6rem;display:flex;justify-content:space-between}
+.hist-title span{color:var(--acc)}
+.hist-bars{display:flex;align-items:flex-end;gap:2px;height:48px}
+.hist-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.hist-bar{width:100%;background:linear-gradient(180deg,var(--acc),var(--acc2));border-radius:2px 2px 0 0;min-height:2px;transition:height .3s;opacity:.7}
+.hist-bar.mine{opacity:1;background:linear-gradient(180deg,var(--ok),var(--acc));box-shadow:0 0 6px rgba(0,229,255,.4)}
+.hist-label{font-size:.55rem;color:var(--mu);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hist-empty{font-size:.75rem;color:var(--mu);text-align:center;padding:.5rem 0;width:100%}
 </style>
 </head>
 <body>
@@ -442,15 +452,15 @@ async function loadEvents(){
     g("statN").textContent=unique.size;
   }
   if(S.profile)await loadMyPreds();
-  else renderMarket();
+  else await loadAllPredictions();
 }
 
 async function loadMyPreds(){
-  if(!S.profile){renderMarket();return;}
+  if(!S.profile){await loadAllPredictions();return;}
   var {data}=await _supabase.from("predictions").select("event_id,value,score").eq("user_id",S.profile.id);
   S.myPreds={};
   (data||[]).forEach(function(r){S.myPreds[r.event_id]={v:r.value,score:r.score};});
-  renderMarket();
+  await loadAllPredictions();
 }
 
 async function loadRanking(){
@@ -464,19 +474,71 @@ async function loadRanking(){
   }).join("");
 }
 
+// Store all predictions per event
+S.eventPreds = S.eventPreds || {};
+
+async function loadAllPredictions(){
+  var {data} = await _supabase.from("predictions").select("event_id,value,user_id");
+  S.eventPreds = {};
+  (data||[]).forEach(function(p){
+    if(!S.eventPreds[p.event_id]) S.eventPreds[p.event_id]=[];
+    S.eventPreds[p.event_id].push({v:parseFloat(p.value), mine: S.profile && p.user_id===S.profile.id});
+  });
+  renderMarket();
+}
+
+function buildHistogram(eventId, myPred){
+  var preds = (S.eventPreds && S.eventPreds[eventId]) || [];
+  if(!preds.length) return "<div class=\"hist-empty\">"+(S.lang==="ja"?"まだ予測がありません":"No predictions yet")+"</div>";
+  var vals = preds.map(function(p){return p.v;});
+  var min = Math.min.apply(null,vals);
+  var max = Math.max.apply(null,vals);
+  var range = max - min;
+  var BIN_COUNT = 6;
+  var binSize = range > 0 ? range / BIN_COUNT : 1;
+  var bins = [];
+  for(var i=0;i<BIN_COUNT;i++) bins.push({count:0,hasMe:false,label:""});
+  vals.forEach(function(v,idx){
+    var bi = range > 0 ? Math.min(Math.floor((v-min)/binSize), BIN_COUNT-1) : 0;
+    bins[bi].count++;
+    if(preds[idx].mine) bins[bi].hasMe=true;
+  });
+  var maxCount = Math.max.apply(null, bins.map(function(b){return b.count;})) || 1;
+  var myVal = myPred ? parseFloat(myPred) : null;
+  var total = preds.length;
+  var html = "<div class=\"hist-title\"><span>"+(S.lang==="ja"?"予測分布":"Distribution")+"</span><span>"+total+(S.lang==="ja"?"人":"ppl")+"</span></div>";
+  html += "<div class=\"hist-bars\">";
+  bins.forEach(function(b,i){
+    var h = Math.round((b.count/maxCount)*44);
+    if(h<2&&b.count>0) h=4;
+    var labelVal = (min + binSize*i + binSize/2).toFixed(1);
+    html += "<div class=\"hist-bar-wrap\">"
+      +"<div class=\"hist-bar"+(b.hasMe?" mine":"")+"\" style=\"height:"+(h||0)+"px\" title=\""+b.count+"件\"></div>"
+      +"<div class=\"hist-label\">"+labelVal+"</div>"
+      +"</div>";
+  });
+  html += "</div>";
+  if(myVal!==null){
+    html += "<div style=\"font-size:.72rem;color:var(--ok);margin-top:.4rem\">▲ "+(S.lang==="ja"?"あなたの予測":"Your prediction")+": "+myVal+"</div>";
+  }
+  return html;
+}
+
 function renderMarket(){
   var t=T();
   var list=S.filter==="all"?S.events:S.events.filter(function(m){return m.category===S.filter;});
   if(!list.length){g("mgrid").innerHTML="<div class=\"loading\">"+(S.lang==="ja"?"イベントはまだありません":"No events yet")+"</div>";return;}
   var cm={health:t.catHealth,economy:t.catEconomy,traffic:t.catTraffic};
   var cc={health:"ch",economy:"ce",traffic:"ct"};
+  var epreds = S.eventPreds || {};
   g("mgrid").innerHTML=list.map(function(m){
     var d=S.myPreds[m.id];
+    var pcount = epreds[m.id] ? epreds[m.id].length : 0;
+    var histHtml = buildHistogram(m.id, d?d.v:null);
     return "<div class=\"mcard"+(d?" done":"")+"\"><div class=\"cmeta\"><span class=\"ctag "+(cc[m.category]||"ch")+"\">"+( cm[m.category]||m.category)+"</span><span class=\"dl\">〆 "+m.deadline+"</span></div>"
       +"<div class=\"ctitle\">"+(S.lang==="ja"?m.title_ja:m.title_en)+"</div>"
-      +"<div class=\"clbl\"><span>"+t.crowd+"</span><span>"+t.crowdRecruit+"</span></div>"
-      +"<div class=\"cbar\"><div class=\"cfill\" style=\"width:50%\"></div></div>"
-      +"<div class=\"cfoot\"><span class=\"pcount\">👥 "+(d?1:0)+(S.lang==="ja"?t.participants:t.participants)+"</span>"
+      +"<div class=\"hist-section\">"+histHtml+"</div>"
+      +"<div class=\"cfoot\"><span class=\"pcount\">👥 "+pcount+(S.lang==="ja"?t.participants:t.participants)+"</span>"
       +"<button class=\"pbtn"+(d?" pred":"")+"\" data-mid=\""+m.id+"\">"+(d?t.predictedBtn:t.predictBtn)+"</button></div>"
       +(d?"<div class=\"mypred\">"+t.myPred+"<span>"+d.v+"</span>"+(d.score?"<span class=\"score-tag\">+"+d.score+" CR</span>":"")+"</div>":"")
       +"</div>";
@@ -680,6 +742,9 @@ g("msub").addEventListener("click",async function(){
   S.myPreds[m.id]={v:v};closeModal();
   await loadMyPreds();
   showToast(T().toastSent);
+  // update participant count in hero
+  var {data:pdata}=await _supabase.from("predictions").select("user_id");
+  if(pdata){var unique=new Set(pdata.map(function(p){return p.user_id;}));g("statN").textContent=unique.size;}
 });
 
 g("admLoginBtn").addEventListener("click",function(){
