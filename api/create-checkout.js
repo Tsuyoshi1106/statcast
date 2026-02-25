@@ -1,5 +1,3 @@
-
-
 const Stripe = require('stripe');
 
 module.exports = async function handler(req, res) {
