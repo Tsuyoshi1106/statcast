@@ -1,11 +1,3 @@
-{
-  "name": "statcast",
-  "version": "1.0.0",
-  "dependencies": {
-    "stripe": "^14.0.0",
-    "@supabase/supabase-js": "^2.0.0"
-  }
-}
 
 
 const Stripe = require('stripe');
