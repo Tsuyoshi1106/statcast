@@ -1,6 +1,12 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -14,54 +20,57 @@ module.exports = async function handler(req, res) {
 
   const sig = req.headers['stripe-signature'];
   let event;
+  let rawBody = '';
+
+  await new Promise((resolve, reject) => {
+    req.on('data', chunk => { rawBody += chunk; });
+    req.on('end', resolve);
+    req.on('error', reject);
+  });
 
   try {
-    const rawBody = await getRawBody(req);
     event = stripe.webhooks.constructEvent(
       rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    return res.status(400).json({ error: 'Webhook signature verification failed' });
+    console.error('Webhook error:', err.message);
+    return res.status(400).json({ error: err.message });
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const userId = session.metadata.userId;
+    const userId = session.metadata && session.metadata.userId;
     if (userId) {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ is_premium: true, premium_since: new Date().toISOString() })
         .eq('id', userId);
+      console.log('Premium updated for:', userId, error ? error.message : 'OK');
     }
   }
 
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
-    const customer = await stripe.customers.retrieve(subscription.customer);
-    if (customer.email) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', customer.email);
-      if (data && data.length > 0) {
-        await supabase
+    try {
+      const customer = await stripe.customers.retrieve(subscription.customer);
+      if (customer.email) {
+        const { data } = await supabase
           .from('profiles')
-          .update({ is_premium: false })
-          .eq('id', data[0].id);
+          .select('id')
+          .eq('email', customer.email);
+        if (data && data.length > 0) {
+          await supabase
+            .from('profiles')
+            .update({ is_premium: false })
+            .eq('id', data[0].id);
+        }
       }
+    } catch(e) {
+      console.error('Subscription delete error:', e.message);
     }
   }
 
   res.status(200).json({ received: true });
 };
-
-async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => resolve(data));
-    req.on('error', reject);
-  });
-}
