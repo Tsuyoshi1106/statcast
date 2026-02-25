@@ -154,6 +154,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .hist-bar.mine{opacity:1;background:linear-gradient(180deg,var(--ok),var(--acc));box-shadow:0 0 6px rgba(0,229,255,.4)}
 .hist-label{font-size:.55rem;color:var(--mu);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .hist-empty{font-size:.75rem;color:var(--mu);text-align:center;padding:.5rem 0;width:100%}
+
+.premium-badge{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:.7rem;padding:.15rem .5rem;border-radius:4px;font-weight:700;margin-left:.4rem}
+.premium-lock{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:1rem;text-align:center;margin-top:.9rem}
+.premium-lock p{font-size:.8rem;color:var(--mu);margin-bottom:.7rem}
+.premium-btn{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:700;width:100%}
+.premium-tag{display:inline-block;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:3px;font-weight:700;vertical-align:middle;margin-left:.3rem}
+.prem-section{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(239,68,68,.1));border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+.prem-section h3{color:#f59e0b;font-size:.95rem;margin-bottom:.8rem}
+.prem-features{display:flex;flex-direction:column;gap:.5rem}
+.prem-feature{display:flex;align-items:center;gap:.5rem;font-size:.83rem}
+.prem-feature .check{color:#f59e0b;font-weight:700}
 </style>
 </head>
 <body>
@@ -396,7 +407,8 @@ function showToast(msg,isErr){
 function updateNav(){
   var t=T();
   g("navBtn").textContent=S.profile?t.navLogout:t.navLogin;
-  g("crBadge").textContent="⚡ "+(S.profile?S.profile.credits:0)+" CR";
+  var premBadge = S.profile&&S.profile.is_premium?"<span class=\"premium-badge\">PRO</span>":"";
+  g("crBadge").innerHTML="⚡ "+(S.profile?S.profile.credits:0)+" CR"+premBadge;
   if(S.profile&&!S.profile.passed_test){g("lockAlert").style.display="block";}
   else{g("lockAlert").style.display="none";}
 }
@@ -489,15 +501,31 @@ async function loadAllPredictions(){
 
 function buildHistogram(eventId, myPred){
   var preds = (S.eventPreds && S.eventPreds[eventId]) || [];
-  if(!preds.length) return "<div class=\"hist-empty\">"+(S.lang==="ja"?"まだ予測がありません":"No predictions yet")+"</div>";
+  var total = preds.length;
+  var isPremium = S.profile && S.profile.is_premium;
+  
+  // Show participant count to everyone
+  var countHtml = "<div class=\"hist-title\"><span>"+(S.lang==="ja"?"予測分布":"Distribution")+"<span class=\"premium-tag\">PRO</span></span><span>"+total+(S.lang==="ja"?"人":"ppl")+"</span></div>";
+  
+  if(!preds.length) return countHtml + "<div class=\"hist-empty\">"+(S.lang==="ja"?"まだ予測がありません":"No predictions yet")+"</div>";
+  
+  // Non-premium: show blurred lock
+  if(!isPremium){
+    return countHtml + "<div class=\"premium-lock\">"
+      +"<p>"+(S.lang==="ja"?"予測分布はプレミアム会員限定です":"Prediction distribution is for premium members only")+"</p>"
+      +"<button class=\"premium-btn\" id=\"upgBtn\">🔓 "+(S.lang==="ja"?"プレミアムにアップグレード":"Upgrade to Premium")+" — ¥980/月</button>"
+      +"</div>";
+  }
+  
   var vals = preds.map(function(p){return p.v;});
   var min = Math.min.apply(null,vals);
   var max = Math.max.apply(null,vals);
   var range = max - min;
+  var avg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
   var BIN_COUNT = 6;
   var binSize = range > 0 ? range / BIN_COUNT : 1;
   var bins = [];
-  for(var i=0;i<BIN_COUNT;i++) bins.push({count:0,hasMe:false,label:""});
+  for(var i=0;i<BIN_COUNT;i++) bins.push({count:0,hasMe:false});
   vals.forEach(function(v,idx){
     var bi = range > 0 ? Math.min(Math.floor((v-min)/binSize), BIN_COUNT-1) : 0;
     bins[bi].count++;
@@ -505,21 +533,34 @@ function buildHistogram(eventId, myPred){
   });
   var maxCount = Math.max.apply(null, bins.map(function(b){return b.count;})) || 1;
   var myVal = myPred ? parseFloat(myPred) : null;
-  var total = preds.length;
-  var html = "<div class=\"hist-title\"><span>"+(S.lang==="ja"?"予測分布":"Distribution")+"</span><span>"+total+(S.lang==="ja"?"人":"ppl")+"</span></div>";
+  
+  // Calculate percentile
+  var percentile = null;
+  if(myVal !== null && vals.length > 1){
+    var below = vals.filter(function(v){return v < myVal;}).length;
+    percentile = Math.round((below/vals.length)*100);
+  }
+  
+  var html = countHtml;
   html += "<div class=\"hist-bars\">";
   bins.forEach(function(b,i){
     var h = Math.round((b.count/maxCount)*44);
     if(h<2&&b.count>0) h=4;
     var labelVal = (min + binSize*i + binSize/2).toFixed(1);
     html += "<div class=\"hist-bar-wrap\">"
-      +"<div class=\"hist-bar"+(b.hasMe?" mine":"")+"\" style=\"height:"+(h||0)+"px\" title=\""+b.count+"件\"></div>"
+      +"<div class=\"hist-bar"+(b.hasMe?" mine":"")+"\" style=\"height:"+(h||0)+"px\"></div>"
       +"<div class=\"hist-label\">"+labelVal+"</div>"
       +"</div>";
   });
   html += "</div>";
+  html += "<div style=\"display:flex;gap:1rem;margin-top:.5rem;font-size:.72rem;color:var(--mu)\">"
+    +"<span>"+(S.lang==="ja"?"平均":"Avg")+": <strong style=\"color:var(--acc)\">"+avg.toFixed(2)+"</strong></span>";
+  if(percentile!==null){
+    html += "<span>"+(S.lang==="ja"?"あなたは上位":"You are top")+": <strong style=\"color:var(--ok)\">"+(100-percentile)+"%</strong></span>";
+  }
+  html += "</div>";
   if(myVal!==null){
-    html += "<div style=\"font-size:.72rem;color:var(--ok);margin-top:.4rem\">▲ "+(S.lang==="ja"?"あなたの予測":"Your prediction")+": "+myVal+"</div>";
+    html += "<div style=\"font-size:.72rem;color:var(--ok);margin-top:.3rem\">▲ "+(S.lang==="ja"?"あなたの予測":"Your prediction")+": "+myVal+"</div>";
   }
   return html;
 }
@@ -720,7 +761,10 @@ document.querySelectorAll(".fbtn").forEach(function(b){
   });
 });
 
-g("mgrid").addEventListener("click",function(e){var b=e.target.closest(".pbtn");if(b)openModal(b.dataset.mid);});
+g("mgrid").addEventListener("click",function(e){
+  var b=e.target.closest(".pbtn");if(b)openModal(b.dataset.mid);
+  var u=e.target.closest("#upgBtn");if(u)startCheckout();
+});
 g("qarea").addEventListener("click",function(e){var b=e.target.closest(".obtn");if(b&&!S.answered)handleAns(parseInt(b.dataset.i));});
 g("nbtn").addEventListener("click",function(){S.qi++;if(S.qi>=5)showResult();else renderQ();});
 g("mcls").addEventListener("click",closeModal);
@@ -778,6 +822,70 @@ g("evList").addEventListener("click",async function(e){
     loadAdminEvents();loadEvents();showToast(T().toastResultSaved);
   }
 });
+
+async function startCheckout(){
+  if(!S.profile){showToast(T().toastNeedLogin,true);showAuthModal("login");return;}
+  showToast(S.lang==="ja"?"決済ページに移動中...":"Redirecting to payment...");
+  try {
+    var res = await fetch("/api/create-checkout",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userEmail:S.profile.email,userId:S.profile.id})
+    });
+    var data = await res.json();
+    if(data.url) window.location.href = data.url;
+    else showToast("Error: "+data.error,true);
+  } catch(e){
+    showToast("Error: "+e.message,true);
+  }
+}
+
+// Handle premium success redirect
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if(params.get("premium")==="success"){
+    var userId = params.get("userId");
+    if(userId){
+      // Update profile in DB
+      _supabase.from("profiles").update({is_premium:true,premium_since:new Date().toISOString()}).eq("id",userId).then(function(){
+        history.replaceState(null,"","/");
+        showToast(S.lang==="ja"?"🎉 プレミアム会員になりました！":"🎉 Welcome to Premium!");
+      });
+    }
+  }
+  if(params.get("premium")==="cancel"){
+    history.replaceState(null,"","/");
+    showToast(S.lang==="ja"?"決済をキャンセルしました":"Payment cancelled",true);
+  }
+})();
+
+// Handle premium success/cancel redirect
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if(params.get("premium")==="success"){
+    var userId = params.get("userId");
+    if(userId){
+      _supabase.from("profiles").update({is_premium:true,premium_since:new Date().toISOString()}).eq("id",userId).then(function(){
+        history.replaceState(null,"","/");
+        setTimeout(function(){showToast("🎉 プレミアム会員になりました！");},1000);
+      });
+    }
+  }
+  if(params.get("premium")==="cancel"){
+    history.replaceState(null,"","/");
+    setTimeout(function(){showToast("決済をキャンセルしました",true);},500);
+  }
+})();
+
+// Handle premium redirect
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get("premium")==="success"){
+    var uid=params.get("userId");
+    if(uid){_supabase.from("profiles").update({is_premium:true,premium_since:new Date().toISOString()}).eq("id",uid).then(function(){history.replaceState(null,"","/");setTimeout(function(){showToast("🎉 プレミアム会員になりました！");},1000);});}
+  }
+  if(params.get("premium")==="cancel"){history.replaceState(null,"","/");setTimeout(function(){showToast("決済をキャンセルしました",true);},500);}
+})();
 
 // INIT — restore session
 (async function(){
