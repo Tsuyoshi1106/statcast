@@ -165,6 +165,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .prem-features{display:flex;flex-direction:column;gap:.5rem}
 .prem-feature{display:flex;align-items:center;gap:.5rem;font-size:.83rem}
 .prem-feature .check{color:#f59e0b;font-weight:700}
+
+.archive-page{padding:1.2rem}
+.arc-card{background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:1.2rem;margin-bottom:.9rem}
+.arc-card.premium-locked{opacity:.6;position:relative}
+.arc-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.4rem}
+.arc-title{font-size:.88rem;font-weight:500;line-height:1.5;margin-bottom:.6rem}
+.arc-result{font-size:.85rem;color:var(--acc);font-weight:700;margin-bottom:.5rem}
+.arc-result span{color:var(--mu);font-weight:400;font-size:.78rem;margin-left:.4rem}
+.arc-stats{display:flex;gap:1.2rem;font-size:.75rem;color:var(--mu);flex-wrap:wrap}
+.arc-stats strong{color:var(--tx)}
+.arc-pred{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--bd);font-size:.78rem;color:var(--mu)}
+.arc-pred span{color:var(--ok);font-weight:600}
+.arc-score{margin-left:.5rem;font-size:.72rem;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);border-radius:4px;padding:.1rem .4rem;color:var(--acc)}
+.arc-lock{text-align:center;padding:2rem;color:var(--mu)}
+.arc-lock p{margin-bottom:1rem;font-size:.88rem}
+.pred-change-btn{font-size:.75rem;padding:.3rem .7rem;border-radius:6px;border:1px solid var(--acc);background:none;color:var(--acc);margin-left:.5rem}
 </style>
 </head>
 <body>
@@ -180,7 +196,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   <button class="tab active" data-p="market" id="tab-market">マーケット</button>
   <button class="tab" data-p="test" id="tab-test">エントリーテスト</button>
   <button class="tab" data-p="ranking" id="tab-ranking">ランキング</button>
-  <button class="tab adm" data-p="admin" id="tab-admin">&#x1F512; Admin</button>
+  <button class="tab" data-p="archive" id="tab-archive"></button>
+<button class="tab adm" data-p="admin" id="tab-admin">&#x1F512; Admin</button>
 </div>
 
 <div class="page active" id="p-market">
@@ -226,6 +243,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   <div class="rtbl">
     <div class="rrow hdr"><span>#</span><span id="rankUser"></span><span style="text-align:right">CR</span></div>
     <div id="rrows"><div class="loading">読み込み中...</div></div>
+  </div>
+</div>
+
+<div class="page" id="p-archive">
+  <div class="archive-page">
+    <div class="sec-head"><h2 id="arcTitle"></h2></div>
+    <div id="arcContent"><div class="loading">読み込み中...</div></div>
   </div>
 </div>
 
@@ -336,6 +360,10 @@ var LANG = {
     loginBtn:"ログイン",regBtn:"登録する",
     switchToReg:"アカウントをお持ちでない方 →",switchToLogin:"すでにアカウントをお持ちの方 →",
     qOf:" / 5",
+    arcTitle:"過去のイベント",arcLock:"過去のイベントはプレミアム会員限定です",
+    arcAvg:"平均予測",arcParticipants:"参加者",arcYourPred:"あなたの予測",
+    arcNoEvents:"過去のイベントはまだありません",tabArchive:"アーカイブ",
+    changeBtn:"変更",changePredTitle:"予測を変更",
     q:[
       {q:"平均値（mean）と中央値（median）が大きく異なる場合、データ分布はどのような特徴を持つ可能性が高いですか？",opts:["データが正規分布している","データに外れ値（outlier）が存在する可能性がある","データ数が少なすぎる","データの単位が間違っている"],ans:1},
       {q:"死亡率が「人口10万人あたり500人」と表記されています。これは何を意味しますか？",opts:["10万人の集団のうち500人が死亡した","500万人の死亡が記録された","死亡率は0.5%である","1と3の両方が正しい"],ans:3},
@@ -380,6 +408,14 @@ var LANG = {
     loginBtn:"Login",regBtn:"Register",
     switchToReg:"Don't have an account? →",switchToLogin:"Already have an account? →",
     qOf:" / 5",
+    arcTitle:"過去のイベント",arcLock:"過去のイベントはプレミアム会員限定です",
+    arcAvg:"平均予測",arcParticipants:"参加者",arcYourPred:"あなたの予測",
+    arcNoEvents:"過去のイベントはまだありません",tabArchive:"アーカイブ",
+    changeBtn:"変更",changePredTitle:"予測を変更",
+    arcTitle:"Past Events",arcLock:"Past events are for premium members only",
+    arcAvg:"Avg prediction",arcParticipants:"participants",arcYourPred:"Your prediction",
+    arcNoEvents:"No past events yet",tabArchive:"Archive",
+    changeBtn:"Change",changePredTitle:"Change Prediction",
     q:[
       {q:"When the mean and median differ greatly, what does this suggest about the data distribution?",opts:["The data follows a normal distribution","The data likely contains outliers","The sample size is too small","The unit of measurement is incorrect"],ans:1},
       {q:"A mortality rate of '500 per 100,000 people' means:",opts:["500 people died out of a group of 100,000","5 million deaths were recorded","The mortality rate is 0.5%","Both 1 and 3 are correct"],ans:3},
@@ -420,6 +456,7 @@ function showPage(n){
   document.querySelectorAll(".tab").forEach(function(t){if(t.dataset.p===n)t.classList.add("active");});
   if(n==="ranking")loadRanking();
   if(n==="market")loadEvents();
+  if(n==="archive")loadArchive();
 }
 
 function applyLang(){
@@ -427,6 +464,7 @@ function applyLang(){
   document.documentElement.lang=S.lang;
   g("langBtn").textContent=t.langSwitch;
   g("tab-market").textContent=t.tabMarket;
+  g("tab-archive").textContent=t.tabArchive;
   g("tab-test").textContent=t.tabTest;
   g("tab-ranking").textContent=t.rankTitle;
   g("heroTitle").innerHTML=t.heroTitle;
@@ -488,6 +526,43 @@ async function loadRanking(){
 
 // Store all predictions per event
 S.eventPreds = S.eventPreds || {};
+
+async function loadArchive(){
+  var t=T();
+  var arcContent=g("arcContent");
+  if(!S.profile||!S.profile.is_premium){
+    arcContent.innerHTML="<div class=\"arc-lock\"><div style=\"font-size:2rem;margin-bottom:.8rem\">🔒</div><p>"+t.arcLock+"</p><button class=\"premium-btn\" onclick=\"startCheckout()\">🔓 "+( S.lang==="ja"?"プレミアムにアップグレード":"Upgrade to Premium")+" — ¥980/月</button></div>";
+    return;
+  }
+  var {data:evs}=await _supabase.from("events").select("*").not("result","is",null).order("created_at",{ascending:false});
+  if(!evs||!evs.length){arcContent.innerHTML="<div class=\"loading\">"+t.arcNoEvents+"</div>";return;}
+  var {data:myPreds}=await _supabase.from("predictions").select("event_id,value,score").eq("user_id",S.profile.id);
+  var myPredsMap={};
+  (myPreds||[]).forEach(function(p){myPredsMap[p.event_id]={v:p.value,score:p.score};});
+  var {data:allPreds}=await _supabase.from("predictions").select("event_id,value");
+  var predsByEvent={};
+  (allPreds||[]).forEach(function(p){
+    if(!predsByEvent[p.event_id])predsByEvent[p.event_id]=[];
+    predsByEvent[p.event_id].push(parseFloat(p.value));
+  });
+  var cm={health:t.catHealth,economy:t.catEconomy,traffic:t.catTraffic};
+  var cc={health:"ch",economy:"ce",traffic:"ct"};
+  arcContent.innerHTML=evs.map(function(ev){
+    var preds=predsByEvent[ev.id]||[];
+    var avg=preds.length?( preds.reduce(function(a,b){return a+b;},0)/preds.length).toFixed(2):"—";
+    var myP=myPredsMap[ev.id];
+    return "<div class=\"arc-card\">"
+      +"<div class=\"arc-meta\"><span class=\"ctag "+(cc[ev.category]||"ch")+"\">"+( cm[ev.category]||ev.category)+"</span><span class=\"dl\">〆 "+ev.deadline+"</span></div>"
+      +"<div class=\"arc-title\">"+(S.lang==="ja"?ev.title_ja:ev.title_en)+"</div>"
+      +"<div class=\"arc-result\">Result: "+ev.result+"<span>"+(S.lang==="ja"?ev.unit_ja:ev.unit_en)+"</span></div>"
+      +"<div class=\"arc-stats\">"
+      +"<span>"+t.arcAvg+": <strong>"+avg+"</strong></span>"
+      +"<span>"+t.arcParticipants+": <strong>"+preds.length+"</strong></span>"
+      +"</div>"
+      +(myP?"<div class=\"arc-pred\">"+t.arcYourPred+": <span>"+myP.v+"</span>"+(myP.score?"<span class=\"arc-score\">+"+myP.score+" CR</span>":"")+"</div>":"")
+      +"</div>";
+  }).join("");
+}
 
 async function loadAllPredictions(){
   var {data} = await _supabase.from("predictions").select("event_id,value,user_id");
@@ -581,7 +656,7 @@ function renderMarket(){
       +"<div class=\"hist-section\">"+histHtml+"</div>"
       +"<div class=\"cfoot\"><span class=\"pcount\">👥 "+pcount+(S.lang==="ja"?t.participants:t.participants)+"</span>"
       +"<button class=\"pbtn"+(d?" pred":"")+"\" data-mid=\""+m.id+"\">"+(d?t.predictedBtn:t.predictBtn)+"</button></div>"
-      +(d?"<div class=\"mypred\">"+t.myPred+"<span>"+d.v+"</span>"+(d.score?"<span class=\"score-tag\">+"+d.score+" CR</span>":"")+"</div>":"")
+      +(d?"<div class=\"mypred\">"+t.myPred+"<span>"+d.v+"</span>"+(d.score?"<span class=\"score-tag\">+"+d.score+" CR</span>":"")+(S.profile&&S.profile.is_premium&&!d.score?"<button class=\"pred-change-btn\" data-changeid=\""+m.id+"\">✏ "+t.changeBtn+"</button>":"")+"</div>":"")
       +"</div>";
   }).join("");
 }
@@ -764,6 +839,7 @@ document.querySelectorAll(".fbtn").forEach(function(b){
 g("mgrid").addEventListener("click",function(e){
   var b=e.target.closest(".pbtn");if(b)openModal(b.dataset.mid);
   var u=e.target.closest("#upgBtn");if(u)startCheckout();
+  var c=e.target.closest(".pred-change-btn");if(c)openModal(c.dataset.changeid);
 });
 g("qarea").addEventListener("click",function(e){var b=e.target.closest(".obtn");if(b&&!S.answered)handleAns(parseInt(b.dataset.i));});
 g("nbtn").addEventListener("click",function(){S.qi++;if(S.qi>=5)showResult();else renderQ();});
