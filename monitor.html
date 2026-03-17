@@ -141,20 +141,20 @@ input.pi{width:62px;text-align:right;padding:3px 5px;font-size:11px;border:1px s
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <p class="card-title" style="margin:0;">GLD BCS</p>
-        <span class="badge" style="background:#FAEEDA;color:#8B6500;">証拠金 25%</span>
+        <span class="badge" style="background:#FAEEDA;color:#8B6500;">証拠金 30%</span>
       </div>
       <div id="bcsGldFull"></div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <p class="card-title" style="margin:0;">IWM BCS</p>
-        <span class="badge" style="background:#EAF3DE;color:#3B6D11;">証拠金 5%（毎日）</span>
+        <span class="badge" style="background:#EAF3DE;color:#3B6D11;">証拠金 10%（毎日）</span>
       </div>
       <div id="bcsIwmFull"></div>
     </div>
   </div>
   <div style="background:#f5f5f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;">
-    GLD BCS勝率 100%（2019-2026） · IWM BCS勝率 98.9% · GLD月次平均 +21.7% · IWM月次平均 +6.2%
+    GLD BCS勝率 100% · IWM BCS勝率 98.9% · GLD月次平均 +26.0% · IWM月次平均 +12.3% | 月次平均+55.2% 勝率100% 最悪月+0.9%
   </div>
 </div>
 
@@ -292,9 +292,9 @@ function analyze() {
   const eq3txt=eq3.length?eq3.map(d=>`${d.tk}(${d.score.toFixed(0)})`).join(' / '):'（≥10なし）'
   document.getElementById('expPanel').innerHTML=[
     {l:'Call 20%',v:ctk||'なし',sub:ctk?`IV${((P[ctk]?.iv||0)*100).toFixed(0)}% sc${calcScore(ctk).score.toFixed(1)}`:'全候補除外',c:'#6B2FA0',bg:'rgba(107,47,160,0.07)'},
-    {l:'現物（≥10 Top3）',v:eq3txt,sub:eq3.length?'スコア比例 計30%':'現物ゼロ',c:'#0F6E56',bg:'rgba(29,158,117,0.07)'},
-    {l:'GLD BCS 25%',v:isEntry?'エントリー可':'非エントリー日',sub:isEntry?(dow===5?`週またぎ ${(gp*1.06).toFixed(1)}`:`0DTE ${(gp*1.02).toFixed(1)} / 1DTE ${(gp*1.035).toFixed(1)}`):'月・水・金のみ',c:'#8B6500',bg:'rgba(186,117,23,0.07)'},
-    {l:'IWM BCS 5%',v:'毎日エントリー可',sub:`0DTE ${(ip*1.015).toFixed(1)} / 1-2DTE ${(ip*1.045).toFixed(1)}`,c:'#3B6D11',bg:'rgba(99,153,34,0.07)'},
+    {l:'現物（参考・スコア≥10）',v:eq3txt,sub:eq3.length?'スコア比例 計30%':'現物ゼロ',c:'#0F6E56',bg:'rgba(29,158,117,0.07)'},
+    {l:'GLD BCS 30%',v:isEntry?'エントリー可':'非エントリー日',sub:isEntry?(dow===5?`週またぎ ${(gp*1.06).toFixed(1)}`:`0DTE ${(gp*1.02).toFixed(1)} / 1DTE ${(gp*1.035).toFixed(1)}`):'月・水・金のみ',c:'#8B6500',bg:'rgba(186,117,23,0.07)'},
+    {l:'IWM BCS 10%',v:'毎日エントリー可',sub:`0DTE ${(ip*1.015).toFixed(1)} / 1-2DTE ${(ip*1.045).toFixed(1)}`,c:'#3B6D11',bg:'rgba(99,153,34,0.07)'},
     {l:'SOXS Put 3%',v:pa.action,sub:pa.detail,c:pa.c,bg:pa.bg},
   ].map(e=>`<div class="exp-card" style="background:${e.bg}">
     <p style="font-size:10px;font-weight:500;color:${e.c};margin:0 0 2px">${e.l}</p>
@@ -408,3 +408,4 @@ analyze()
 </script>
 </body>
 </html>
+
