@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategy Monitor — Statcast</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a18;font-size:14px;padding:16px;}
+.container{max-width:960px;margin:0 auto;}
+h1{font-size:18px;font-weight:500;margin-bottom:4px;}
+.sub{font-size:11px;color:#888;margin-bottom:16px;}
+.btn-primary{font-size:13px;padding:7px 20px;border:1px solid #1D9E75;border-radius:6px;background:rgba(29,158,117,0.08);color:#1D9E75;cursor:pointer;font-weight:500;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.tabs{display:flex;gap:6px;margin-bottom:16px;}
+.tab{padding:5px 14px;font-size:12px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;cursor:pointer;}
+.tab.on{background:#f0f0ea;color:#1a1a18;font-weight:500;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
+.card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:14px;}
+.card-title{font-size:13px;font-weight:500;margin-bottom:10px;}
+.metric{background:#f5f5f0;border-radius:6px;padding:8px;text-align:center;}
+.metric-label{font-size:10px;color:#888;margin-bottom:2px;}
+.metric-value{font-size:16px;font-weight:500;}
+.progress-wrap{background:#f5f5f0;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;}
+.progress-bar-bg{background:#e0e0d8;border-radius:3px;height:5px;margin-top:6px;}
+.progress-bar{height:5px;background:#1D9E75;border-radius:3px;width:0%;transition:width 0.4s;}
+.alert-box{background:#FAEEDA;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;font-size:11px;line-height:1.8;}
+.rg-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.rg-card{border-radius:5px;padding:6px 8px;border:1px solid #e0e0d8;background:#fff;}
+.exp-card{border-radius:5px;padding:8px;}
+.row-kv{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0ea;font-size:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:7px 10px;text-align:left;font-weight:500;color:#888;background:#f5f5f0;}
+td{padding:5px 10px;}
+tr{border-bottom:1px solid #f0f0ea;}
+.badge{font-size:10px;padding:1px 6px;border-radius:3px;display:inline-block;}
+.chart-wrap{position:relative;height:160px;}
+input.pi{width:62px;text-align:right;padding:3px 5px;font-size:11px;border:1px solid #ddd;border-radius:3px;background:#fff;}
+@media(prefers-color-scheme:dark){
+  body{background:#1a1a18;color:#e8e8e0;}
+  .card{background:#252523;border-color:#333;}
+  .tab{background:#252523;border-color:#333;color:#888;}
+  .tab.on{background:#333;color:#e8e8e0;}
+  .metric{background:#333;}
+  .progress-wrap{background:#333;}
+  .progress-bar-bg{background:#444;}
+  .rg-card{background:#252523;border-color:#333;}
+  .row-kv{border-color:#333;}
+  th{background:#333;color:#888;}
+  tr{border-color:#333;}
+  input.pi{background:#333;border-color:#444;color:#e8e8e0;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div>
+    <h1>Strategy Monitor v9e</h1>
+    <p class="sub" id="lastUpdated">— 価格を更新してください</p>
+  </div>
+  <button class="btn-primary" id="fetchBtn" onclick="fetchAll()">▶ 価格を更新</button>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <p style="font-size:12px;color:#888;" id="progressMsg">取得中...</p>
+  <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" id="tb_d" onclick="sw('d')">ダッシュボード</button>
+  <button class="tab" id="tb_s" onclick="sw('s')">スコア一覧</button>
+  <button class="tab" id="tb_b" onclick="sw('b')">BCS設定</button>
+  <button class="tab" id="tb_p" onclick="sw('p')">手動入力</button>
+</div>
+
+<!-- ダッシュボード -->
+<div id="pn_d">
+  <div class="grid2">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <p class="card-title" style="margin:0;">レジーム判定</p>
+        <span id="rgBadge" class="badge"></span>
+      </div>
+      <div class="rg-grid" id="rgCards"></div>
+      <p style="font-size:10px;color:#888;margin-top:7px;">Score = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30)</p>
+    </div>
+    <div class="card">
+      <p class="card-title">推奨 Exposure</p>
+      <div id="expPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+    </div>
+  </div>
+
+  <div class="alert-box" id="alertArea"></div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <p class="card-title" style="margin:0;">スコア（Call対象）</p>
+      <span style="font-size:10px;color:#888;">緑≥10 橙≥3 赤=除外</span>
+    </div>
+    <div class="chart-wrap"><canvas id="scChart"></canvas></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <p class="card-title">GLD BCS 今日の設定</p>
+      <div id="bcsGldToday"></div>
+    </div>
+    <div class="card">
+      <p class="card-title">IWM BCS 今日の設定</p>
+      <div id="bcsIwmToday"></div>
+    </div>
+  </div>
+</div>
+
+<!-- スコア一覧 -->
+<div id="pn_s" style="display:none;">
+  <div style="background:#f5f5f0;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#888;">
+    スコア = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30) | 除外: 3日連続↓ かつ R5D&lt;-3%
+  </div>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>銘柄</th><th style="text-align:right;">現在値</th><th style="text-align:right;">R5D%</th>
+        <th style="text-align:right;">R1M%</th><th style="text-align:right;">IV</th>
+        <th style="text-align:right;">MA10/30</th><th style="text-align:right;">連続↓</th>
+        <th style="text-align:right;">スコア</th><th style="text-align:center;">判定</th>
+      </tr></thead>
+      <tbody id="scoreRows"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BCS設定 -->
+<div id="pn_b" style="display:none;">
+  <div class="grid2" style="margin-bottom:12px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <p class="card-title" style="margin:0;">GLD BCS</p>
+        <span class="badge" style="background:#FAEEDA;color:#8B6500;">証拠金 25%</span>
+      </div>
+      <div id="bcsGldFull"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <p class="card-title" style="margin:0;">IWM BCS</p>
+        <span class="badge" style="background:#EAF3DE;color:#3B6D11;">証拠金 5%（毎日）</span>
+      </div>
+      <div id="bcsIwmFull"></div>
+    </div>
+  </div>
+  <div style="background:#f5f5f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;">
+    GLD BCS勝率 100%（2019-2026） · IWM BCS勝率 98.9% · GLD月次平均 +21.7% · IWM月次平均 +6.2%
+  </div>
+</div>
+
+<!-- 手動入力 -->
+<div id="pn_p" style="display:none;">
+  <p style="font-size:11px;color:#888;margin-bottom:8px;">APIから取得できなかった銘柄を手動入力します。</p>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>銘柄</th><th style="text-align:center;">状態</th><th style="text-align:right;">現在値</th>
+        <th style="text-align:right;">1M前</th><th style="text-align:right;">R5D%</th>
+        <th style="text-align:right;">MA10</th><th style="text-align:right;">MA30</th><th style="text-align:right;">連続↓</th>
+      </tr></thead>
+      <tbody id="priceRows"></tbody>
+    </table>
+  </div>
+  <button onclick="analyze()" style="margin-top:8px;font-size:11px;padding:5px 16px;border:1px solid #ccc;border-radius:4px;background:#f5f5f0;cursor:pointer;">再計算</button>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const TICKERS = [
+  {tk:'GLD', lev:1, call:true,  equity:true},
+  {tk:'XLE', lev:1, call:true,  equity:true},
+  {tk:'XOP', lev:1, call:true,  equity:true},
+  {tk:'XLK', lev:1, call:true,  equity:true},
+  {tk:'XLU', lev:1, call:true,  equity:true},
+  {tk:'XLF', lev:1, call:true,  equity:true},
+  {tk:'SLV', lev:1, call:true,  equity:true},
+  {tk:'XLV', lev:1, call:true,  equity:true},
+  {tk:'SOXL',lev:3, call:true,  equity:false},
+  {tk:'SOXS',lev:3, call:true,  equity:false},
+  {tk:'TECL',lev:3, call:true,  equity:false},
+  {tk:'IWM', lev:1, call:false, equity:true},
+  {tk:'TLT', lev:1, call:false, equity:true},
+  {tk:'XLB', lev:1, call:false, equity:true},
+  {tk:'UUP', lev:1, call:false, equity:false},
+  {tk:'DBA', lev:1, call:false, equity:true},
+  {tk:'USO', lev:1, call:true,  equity:true},
+  {tk:'UNG', lev:1, call:false, equity:true},
+]
+
+let P = {}
+TICKERS.forEach(t => { P[t.tk] = {n:0,m1:0,r1m:0,r5d:0,ma10:0,ma30:0,streak:0,iv:0,score:null,excluded:false,src:'default'} })
+
+function calcScore(tk) {
+  const d = P[tk]; if (!d) return {score:0,excluded:false}
+  if (d.src==='live' && d.score !== null && d.score !== undefined) return {score:+d.score, excluded:!!d.excluded}
+  const lev = TICKERS.find(t=>t.tk===tk)?.lev || 1
+  let raw = (0.5*(d.r1m||0) + 0.5*((d.r5d||0)*5)) / lev
+  if (d.ma10 && d.ma30 && d.ma10 < d.ma30) raw -= 1.0
+  const excluded = (d.streak||0) >= 3 && (d.r5d||0) < -3.0
+  return {score:+raw.toFixed(1), excluded}
+}
+
+function detectRegime() {
+  const CALL_TKS = ['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
+  const cs = {}
+  CALL_TKS.forEach(tk => { const{score,excluded}=calcScore(tk); if(!excluded) cs[tk]=score })
+  const maxSc = Math.max(...Object.values(cs),0)
+  if (maxSc<1.5) return 'DEFENSIVE'
+  const en=Math.max(cs.XLE||0,cs.XOP||0,cs.USO||0)
+  const gk=cs.XLK||0,gd=cs.GLD||0,sl=cs.SOXL||0,ss=cs.SOXS||0,tc=cs.TECL||0
+  if (sl>=3&&gk>=2&&sl>gd&&sl>en) return 'GROWTH_LEV'
+  if (tc>=3&&gk>=2&&tc>gd&&tc>en&&tc>sl) return 'GROWTH_LEV'
+  if (ss>=3&&gk<=-2) return 'DEFENSIVE_SEMI'
+  if (en>=3&&en>=gk&&en>=gd) return 'ENERGY'
+  if (gk>=3&&gk>=gd&&gk>=en) return 'GROWTH'
+  if (gd>=1.5) return 'GLD'
+  return 'GROWTH'
+}
+
+function getEquityTop3() {
+  const EQ=['GLD','SLV','XLE','XOP','XLK','XLU','XLF','XLV','XLB','TLT','IWM','DBA','USO','UNG']
+  return EQ.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
+    .filter(d=>!d.excluded&&d.score>=10).sort((a,b)=>b.score-a.score).slice(0,3)
+}
+
+function getCallTk(regime) {
+  const pref={GLD:['GLD','SLV'],ENERGY:['XOP','XLE','USO'],GROWTH:['XLK','XLF','XLV'],
+    GROWTH_LEV:['SOXL','TECL','XLK'],DEFENSIVE_SEMI:['SOXS','XLV','XLU'],DEFENSIVE:['XLU','XLV']}[regime]||[]
+  for (const tk of pref){const{score,excluded}=calcScore(tk);if(!excluded&&score>=1.5)return tk}
+  const CALL=['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
+  const cands=CALL.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
+    .filter(d=>!d.excluded&&d.score>=1.0).sort((a,b)=>b.score-a.score)
+  return cands[0]?.tk||null
+}
+
+function getSoxsPutAction(regime) {
+  if (regime==='DEFENSIVE_SEMI') return {action:'利確推奨',detail:'DEFENSIVE_SEMI: SOXSが上昇する局面。利確タイミング。',c:'#C05020',bg:'#FCEEE8'}
+  const sc=calcScore('SOXL').score
+  if (sc>=3||regime==='GROWTH_LEV') return {action:'新規 / 保有継続',detail:`SOXL sc:${sc.toFixed(1)} — 半導体強い。SOXS減価進行中。360日/ATM×50%`,c:'#0F6E56',bg:'#EAF3DE'}
+  return {action:'保有継続',detail:`非DEFENSIVE_SEMI。構造的減価を待つ（${regime}）`,c:'#185FA5',bg:'#E6F1FB'}
+}
+
+function rv(l,v,hi) {
+  return `<div class="row-kv"><span style="color:#888">${l}</span><span style="font-weight:${hi?500:400};color:${hi?'#1D9E75':'inherit'}">${v}</span></div>`
+}
+
+let scInst=null
+
+function analyze() {
+  const regime=detectRegime(),ctk=getCallTk(regime),eq3=getEquityTop3(),pa=getSoxsPutAction(regime)
+  const gp=P.GLD?.n||460, ip=P.IWM?.n||249
+  const dow=new Date().getDay(),isEntry=[1,3,5].includes(dow)
+  const dowLabel=['日','月','火','水','木','金','土'][dow]
+
+  const RGC={GLD:'#B8960C',ENERGY:'#2E8B57',GROWTH:'#185FA5',GROWTH_LEV:'#6B2FA0',DEFENSIVE_SEMI:'#C05020',DEFENSIVE:'#888'}
+  const RGLBL={GLD:'①GLD',ENERGY:'②Energy',GROWTH:'③Growth',GROWTH_LEV:'③-L 3x',DEFENSIVE_SEMI:'④-S Semi',DEFENSIVE:'④Def'}
+  const RGBG={GLD:'#FAEEDA',ENERGY:'#EAF3DE',GROWTH:'#E6F1FB',GROWTH_LEV:'#F3E8FF',DEFENSIVE_SEMI:'#FCEEE8',DEFENSIVE:'#F1EFE8'}
+
+  const rb=document.getElementById('rgBadge')
+  rb.textContent=RGLBL[regime]; rb.style.cssText=`background:${RGBG[regime]};color:${RGC[regime]};font-size:11px;font-weight:500;padding:2px 10px;border-radius:4px;`
+
+  document.getElementById('rgCards').innerHTML=[
+    {k:'GLD',l:'①GLD',c:'#B8960C',bg:'#FAEEDA'},{k:'ENERGY',l:'②Energy',c:'#2E8B57',bg:'#EAF3DE'},
+    {k:'GROWTH',l:'③Growth',c:'#185FA5',bg:'#E6F1FB'},{k:'GROWTH_LEV',l:'③-L 3x',c:'#6B2FA0',bg:'#F3E8FF'},
+    {k:'DEFENSIVE_SEMI',l:'④-S Semi',c:'#C05020',bg:'#FCEEE8'},{k:'DEFENSIVE',l:'④Def',c:'#888',bg:'#F1EFE8'},
+  ].map(d=>{const a=d.k===regime
+    return`<div class="rg-card" style="${a?`border:1.5px solid ${d.c};background:${d.bg}`:''}">
+      <p style="font-size:10px;font-weight:500;color:${d.c};margin:0">${d.l}${a?' ◀':''}</p></div>`
+  }).join('')
+
+  const CALL_TKS=['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
+  const excl=CALL_TKS.filter(tk=>calcScore(tk).excluded)
+  const warned=CALL_TKS.filter(tk=>{const d=P[tk];return d?.ma10&&d?.ma30&&d.ma10<d.ma30&&!calcScore(tk).excluded})
+  const alerts=[]
+  if(excl.length) alerts.push(`🚫 除外: ${excl.join(', ')}`)
+  if(warned.length) alerts.push(`⚠ MA10&lt;MA30: ${warned.join(', ')}`)
+  const ae=document.getElementById('alertArea')
+  if(alerts.length){ae.style.display='block';ae.innerHTML=alerts.map(a=>`<div style="font-size:11px;">${a}</div>`).join('')}
+  else ae.style.display='none'
+
+  const eq3txt=eq3.length?eq3.map(d=>`${d.tk}(${d.score.toFixed(0)})`).join(' / '):'（≥10なし）'
+  document.getElementById('expPanel').innerHTML=[
+    {l:'Call 20%',v:ctk||'なし',sub:ctk?`IV${((P[ctk]?.iv||0)*100).toFixed(0)}% sc${calcScore(ctk).score.toFixed(1)}`:'全候補除外',c:'#6B2FA0',bg:'rgba(107,47,160,0.07)'},
+    {l:'現物（≥10 Top3）',v:eq3txt,sub:eq3.length?'スコア比例 計30%':'現物ゼロ',c:'#0F6E56',bg:'rgba(29,158,117,0.07)'},
+    {l:'GLD BCS 25%',v:isEntry?'エントリー可':'非エントリー日',sub:isEntry?(dow===5?`週またぎ ${(gp*1.06).toFixed(1)}`:`0DTE ${(gp*1.02).toFixed(1)} / 1DTE ${(gp*1.035).toFixed(1)}`):'月・水・金のみ',c:'#8B6500',bg:'rgba(186,117,23,0.07)'},
+    {l:'IWM BCS 5%',v:'毎日エントリー可',sub:`0DTE ${(ip*1.015).toFixed(1)} / 1-2DTE ${(ip*1.045).toFixed(1)}`,c:'#3B6D11',bg:'rgba(99,153,34,0.07)'},
+    {l:'SOXS Put 3%',v:pa.action,sub:pa.detail,c:pa.c,bg:pa.bg},
+  ].map(e=>`<div class="exp-card" style="background:${e.bg}">
+    <p style="font-size:10px;font-weight:500;color:${e.c};margin:0 0 2px">${e.l}</p>
+    <p style="font-size:12px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.v}</p>
+    <p style="font-size:10px;color:#888;margin:2px 0 0;line-height:1.4;">${e.sub}</p>
+  </div>`).join('')
+
+  const CHART_TKS=['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
+  const sd=CHART_TKS.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score:excluded?0:score,excluded}})
+  if(scInst) scInst.destroy()
+  scInst=new Chart(document.getElementById('scChart'),{type:'bar',
+    data:{labels:sd.map(d=>d.excluded?d.tk+'✕':d.tk),
+      datasets:[{data:sd.map(d=>d.score),
+        backgroundColor:sd.map(d=>d.excluded?'rgba(226,75,74,0.5)':d.score>=10?'rgba(29,158,117,0.8)':d.score>=3?'rgba(186,117,23,0.7)':'rgba(136,136,136,0.4)'),
+        borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{font:{size:9}},grid:{color:'rgba(128,128,128,0.1)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}})
+
+  if(!isEntry){
+    document.getElementById('bcsGldToday').innerHTML=`<p style="color:#888;font-size:12px;">本日(${dowLabel})は非エントリー日</p>`
+    document.getElementById('bcsIwmToday').innerHTML=`<p style="color:#888;font-size:12px;">IWMは毎日エントリー可</p>`
+  }else if(dow===5){
+    document.getElementById('bcsGldToday').innerHTML=rv('GLD',gp.toFixed(2))+rv('週またぎ +6%',(gp*1.06).toFixed(2),true)+rv('ROI目標','7%')
+    document.getElementById('bcsIwmToday').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE +1.5%',(ip*1.015).toFixed(2),true)+rv('1DTE +4.5%',(ip*1.045).toFixed(2),true)+rv('2DTE +4.5%',(ip*1.045).toFixed(2),true)
+  }else{
+    document.getElementById('bcsGldToday').innerHTML=rv('GLD',gp.toFixed(2))+rv('0DTE +2%',(gp*1.02).toFixed(2),true)+rv('1DTE +3.5%',(gp*1.035).toFixed(2),true)
+    document.getElementById('bcsIwmToday').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE +1.5%',(ip*1.015).toFixed(2),true)+rv('1DTE +4.5%',(ip*1.045).toFixed(2),true)+rv('2DTE +4.5%',(ip*1.045).toFixed(2),true)
+  }
+  document.getElementById('bcsGldFull').innerHTML=rv('GLD',gp.toFixed(2))+rv('月・水 0DTE',(gp*1.02).toFixed(2),true)+rv('月・水 1DTE',(gp*1.035).toFixed(2),true)+rv('金 週またぎ',(gp*1.06).toFixed(2),true)+rv('暴落スキップ','前日-5%超')+rv('勝率','100%')
+  document.getElementById('bcsIwmFull').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE',(ip*1.015).toFixed(2),true)+rv('1DTE',(ip*1.045).toFixed(2),true)+rv('2DTE',(ip*1.045).toFixed(2),true)+rv('暴落日','0DTEのみ')+rv('勝率','98.9%')
+
+  const tb=document.getElementById('scoreRows'); tb.innerHTML=''
+  TICKERS.map(t=>{const{score,excluded}=calcScore(t.tk);return{...t,score,excluded,d:P[t.tk]||{}}})
+    .sort((a,b)=>b.score-a.score).forEach(t=>{
+    const sc_c=t.excluded?'#E24B4A':t.score>=10?'#1D9E75':t.score>=3?'#BA7517':'#888'
+    const badge=t.excluded?`<span class="badge" style="background:#FCEBEB;color:#791F1F">除外</span>`
+      :t.d.ma10&&t.d.ma30&&t.d.ma10<t.d.ma30?`<span class="badge" style="background:#FAEEDA;color:#8B6500">MA↓</span>`
+      :t.score>=10?`<span class="badge" style="background:#EAF3DE;color:#0F6E56">${t.equity?'現物◎':'Call◎'}</span>`
+      :t.score>=3?`<span class="badge" style="background:#FAEEDA;color:#8B6500">候補</span>`
+      :''
+    const live=t.d.src==='live'
+    const rc=v=>v>=0?'#1D9E75':'#E24B4A'
+    const ma10=t.d.ma10||0,ma30=t.d.ma30||0
+    const nDisp=t.d.n?t.d.n.toFixed(2):'—'
+    tb.innerHTML+=`<tr style="${t.excluded?'opacity:0.55':''}">
+      <td style="font-weight:500"><span style="font-size:9px;color:${live?'#1D9E75':'#bbb'}">●</span> ${t.tk}${t.lev>1?` <span style="font-size:10px;color:#888">×${t.lev}</span>`:''}</td>
+      <td style="text-align:right">${nDisp}</td>
+      <td style="text-align:right;color:${rc(t.d.r5d||0)}">${(t.d.r5d||0)>0?'+':''}${(t.d.r5d||0).toFixed(1)}%</td>
+      <td style="text-align:right;color:${rc(t.d.r1m||0)}">${(t.d.r1m||0)>0?'+':''}${(t.d.r1m||0).toFixed(1)}%</td>
+      <td style="text-align:right;color:#888">${((t.d.iv||0)*100).toFixed(0)}%</td>
+      <td style="text-align:right;font-size:11px;color:${ma10&&ma30&&ma10<ma30?'#E24B4A':'#1D9E75'}">${ma10?ma10.toFixed(0):'-'}/${ma30?ma30.toFixed(0):'-'}</td>
+      <td style="text-align:right;font-size:11px;color:${(t.d.streak||0)>=3?'#E24B4A':(t.d.streak||0)>=2?'#BA7517':'#888'}">${(t.d.streak||0)>0?t.d.streak+'日':'-'}</td>
+      <td style="text-align:right;font-weight:500;color:${sc_c}">${t.excluded?'除外':t.score.toFixed(1)}</td>
+      <td style="text-align:center">${badge}</td>
+    </tr>`
+  })
+
+  const pr=document.getElementById('priceRows'); pr.innerHTML=''
+  TICKERS.forEach(t=>{
+    const d=P[t.tk]||{}; const live=d.src==='live'
+    pr.innerHTML+=`<tr>
+      <td style="font-weight:500;font-size:12px">${t.tk}</td>
+      <td style="text-align:center;font-size:11px;color:${live?'#1D9E75':'#BA7517'}">${live?'取得済':'手動'}</td>
+      <td><input class="pi" value="${d.n||''}" onchange="P['${t.tk}'].n=+this.value;P['${t.tk}'].src='manual';analyze()"></td>
+      <td><input class="pi" value="${d.m1||''}" onchange="P['${t.tk}'].m1=+this.value;P['${t.tk}'].r1m=P['${t.tk}'].n?((P['${t.tk}'].n-P['${t.tk}'].m1)/P['${t.tk}'].m1*100):0;analyze()"></td>
+      <td><input class="pi" value="${(d.r5d||0).toFixed(1)}" onchange="P['${t.tk}'].r5d=+this.value;analyze()"></td>
+      <td><input class="pi" value="${d.ma10||''}" onchange="P['${t.tk}'].ma10=+this.value;analyze()"></td>
+      <td><input class="pi" value="${d.ma30||''}" onchange="P['${t.tk}'].ma30=+this.value;analyze()"></td>
+      <td><input class="pi" style="width:40px" value="${d.streak||0}" onchange="P['${t.tk}'].streak=+this.value;analyze()"></td>
+    </tr>`
+  })
+}
+
+async function fetchAll() {
+  const btn=document.getElementById('fetchBtn')
+  btn.disabled=true; btn.textContent='取得中...'
+  document.getElementById('progressWrap').style.display='block'
+  document.getElementById('progressBar').style.width='20%'
+  document.getElementById('progressMsg').textContent='取得中...'
+  try {
+    // 同一オリジン（/api/prices）から取得
+    const res=await fetch('/api/prices',{signal:AbortSignal.timeout(15000)})
+    if(!res.ok) throw new Error('HTTP '+res.status)
+    const data=await res.json()
+    document.getElementById('progressBar').style.width='90%'
+    let ok=0
+    // APIレスポンスの全キーを直接Pに上書き
+    Object.keys(data).forEach(tk=>{
+      const d=data[tk]
+      if(d&&d.n){ P[tk]={...d,src:'live'}; ok++ }
+    })
+    document.getElementById('progressBar').style.width='100%'
+    document.getElementById('progressMsg').textContent=`完了 — ${ok}件取得`
+    document.getElementById('lastUpdated').textContent=`最終更新: ${new Date().toLocaleString('ja-JP')} (${ok}件)`
+  } catch(e) {
+    document.getElementById('progressMsg').textContent='取得失敗: '+e.message
+  }
+  btn.disabled=false; btn.textContent='▶ 価格を更新'
+  analyze()
+  setTimeout(()=>{document.getElementById('progressWrap').style.display='none'},3000)
+}
+
+function sw(t){
+  ['d','s','b','p'].forEach(id=>{
+    document.getElementById('pn_'+id).style.display=id===t?'block':'none'
+    document.getElementById('tb_'+id).classList.toggle('on',id===t)
+  })
+}
+
+analyze()
+</script>
+</body>
+</html>
