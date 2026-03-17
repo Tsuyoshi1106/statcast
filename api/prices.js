@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET')
 
   const tickers = ['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV',
-                   'SOXL','SOXS','TECL','IWM','TLT','XLB','UUP','IWM','SPY']
+                   'SOXL','SOXS','TECL','IWM','TLT','XLB','UUP','IWM','SPY','DBA','USO','UNG']
 
   const LEV = { SOXL: 3, SOXS: 3, TECL: 3 }
   const results = {}
