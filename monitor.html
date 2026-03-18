@@ -215,8 +215,21 @@ function bsC(S,K,T,sig){
   const d1=(Math.log(S/K)+.5*sig*sig*T)/(sig*Math.sqrt(T)),d2=d1-sig*Math.sqrt(T)
   return S*normCDF(d1)-K*normCDF(d2)
 }
-const CB=bsC(100,102,1/365,.27)  // baseline: GVZ27% 1DTE +2% → ROI 7%
-function estROI(otm,Td,gvz){const T=Math.max(Td,.3)/365;return CB>0?7*bsC(100,100*(1+otm),T,gvz/100)/CB:0}
+const CB=bsC(100,102,1/365,.27)  // baseline reference (unused now)
+// DTE別アンカー: 基準OTM・基準DTE・実績ROI
+const ANCHORS={
+  '0dte':{otm:.02, T:.3/365,  roi:2},  // 0DTE +2%  → 2%
+  '1dte':{otm:.02, T:1/365,   roi:7},  // 1DTE +2%  → 7%（実績確認済み）
+  'week':{otm:.06, T:4/365,   roi:6},  // 週またぎ+6%→ 6%
+}
+function estROI(otm,Td,gvz){
+  const anchor=Td<0.5?ANCHORS['0dte']:Td<2.5?ANCHORS['1dte']:ANCHORS['week']
+  const sig=gvz/100, sigBase=.27
+  const cRef=bsC(100,100*(1+anchor.otm),anchor.T,sigBase)
+  const cTgt=bsC(100,100*(1+otm),anchor.T,sigBase)
+  const otmAdj=cRef>0?Math.min(cTgt/cRef,3):1  // OTM補正は最大3倍でキャップ
+  return anchor.roi*(gvz/27)*otmAdj
+}
 function brPct(otm,Td,gvz){
   const T=Math.max(Td,.3)/365,s=gvz/100
   return(1-normCDF((Math.log(1+otm)-.5*s*s*T)/(s*Math.sqrt(T))))*100
@@ -537,5 +550,4 @@ analyze()
 </script>
 </body>
 </html>
-
 
