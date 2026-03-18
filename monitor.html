@@ -3,74 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Strategy Monitor — Statcast</title>
+<title>Strategy Monitor v9h</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a18;font-size:14px;padding:16px;}
-.container{max-width:960px;margin:0 auto;}
-h1{font-size:18px;font-weight:500;margin-bottom:4px;}
-.sub{font-size:11px;color:#888;margin-bottom:16px;}
-.btn-primary{font-size:13px;padding:7px 20px;border:1px solid #1D9E75;border-radius:6px;background:rgba(29,158,117,0.08);color:#1D9E75;cursor:pointer;font-weight:500;}
-.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
-.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
-.tabs{display:flex;gap:6px;margin-bottom:16px;}
-.tab{padding:5px 14px;font-size:12px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;cursor:pointer;}
-.tab.on{background:#f0f0ea;color:#1a1a18;font-weight:500;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
-.card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:14px;}
-.card-title{font-size:13px;font-weight:500;margin-bottom:10px;}
-.metric{background:#f5f5f0;border-radius:6px;padding:8px;text-align:center;}
-.metric-label{font-size:10px;color:#888;margin-bottom:2px;}
-.metric-value{font-size:16px;font-weight:500;}
-.progress-wrap{background:#f5f5f0;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;}
-.progress-bar-bg{background:#e0e0d8;border-radius:3px;height:5px;margin-top:6px;}
-.progress-bar{height:5px;background:#1D9E75;border-radius:3px;width:0%;transition:width 0.4s;}
-.alert-box{background:#FAEEDA;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;font-size:11px;line-height:1.8;}
-.rg-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.rg-card{border-radius:5px;padding:6px 8px;border:1px solid #e0e0d8;background:#fff;}
-.exp-card{border-radius:5px;padding:8px;}
-.row-kv{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0ea;font-size:12px;}
-table{width:100%;border-collapse:collapse;font-size:12px;}
-th{padding:7px 10px;text-align:left;font-weight:500;color:#888;background:#f5f5f0;}
-td{padding:5px 10px;}
-tr{border-bottom:1px solid #f0f0ea;}
-.badge{font-size:10px;padding:1px 6px;border-radius:3px;display:inline-block;}
-.chart-wrap{position:relative;height:160px;}
-input.pi{width:62px;text-align:right;padding:3px 5px;font-size:11px;border:1px solid #ddd;border-radius:3px;background:#fff;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a18;font-size:14px;padding:16px}
+.container{max-width:960px;margin:0 auto}
+h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.sub{font-size:11px;color:#888;margin-bottom:16px}
+.btn-primary{font-size:13px;padding:7px 20px;border:1px solid #1D9E75;border-radius:6px;background:rgba(29,158,117,.08);color:#1D9E75;cursor:pointer;font-weight:500}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{padding:5px 14px;font-size:12px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;cursor:pointer}
+.tab.on{background:#f0f0ea;color:#1a1a18;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:14px}
+.card-title{font-size:13px;font-weight:500;margin-bottom:10px}
+.metric{background:#f5f5f0;border-radius:6px;padding:8px;text-align:center}
+.metric-label{font-size:10px;color:#888;margin-bottom:2px}
+.metric-value{font-size:13px;font-weight:500}
+.progress-wrap{background:#f5f5f0;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none}
+.progress-bar-bg{background:#e0e0d8;border-radius:3px;height:5px;margin-top:6px}
+.progress-bar{height:5px;background:#1D9E75;border-radius:3px;width:0%;transition:width .4s}
+.alert-box{background:#FAEEDA;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;font-size:11px;line-height:1.8}
+.rg-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rg-card{border-radius:5px;padding:6px 8px;border:1px solid #e0e0d8;background:#fff}
+.exp-card{border-radius:5px;padding:8px}
+.row-kv{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0ea;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:7px 10px;text-align:left;font-weight:500;color:#888;background:#f5f5f0}
+td{padding:5px 10px}
+tr{border-bottom:1px solid #f0f0ea}
+.badge{font-size:10px;padding:1px 6px;border-radius:3px;display:inline-block}
+.chart-wrap{position:relative;height:160px}
+input.pi{width:62px;text-align:right;padding:3px 5px;font-size:11px;border:1px solid #ddd;border-radius:3px;background:#fff}
+.gvz-track{position:relative;height:10px;border-radius:5px;margin:8px 0 4px;background:linear-gradient(to right,#4EAEE8 0%,#5BBD8A 28%,#E8A44E 55%,#E24B4A 78%,#9B2ECA 100%)}
+.gvz-thumb{position:absolute;top:-5px;width:20px;height:20px;border-radius:50%;background:#fff;border:2.5px solid #444;transform:translateX(-50%);transition:left .35s;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.gvz-labels{display:flex;justify-content:space-between;font-size:9px;color:#aaa;padding:0 2px}
+.mode-chip{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.stbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.stbl th{background:#f5f5f0;padding:5px 8px;font-weight:500;color:#888;text-align:center;font-size:11px}
+.stbl td{padding:6px 8px;text-align:center;border-bottom:1px solid #f0f0ea}
+.otm-chip{display:inline-block;padding:1px 8px;border-radius:3px;font-size:11px;font-weight:600}
 @media(prefers-color-scheme:dark){
-  body{background:#1a1a18;color:#e8e8e0;}
-  .card{background:#252523;border-color:#333;}
-  .tab{background:#252523;border-color:#333;color:#888;}
-  .tab.on{background:#333;color:#e8e8e0;}
-  .metric{background:#333;}
-  .progress-wrap{background:#333;}
-  .progress-bar-bg{background:#444;}
-  .rg-card{background:#252523;border-color:#333;}
-  .row-kv{border-color:#333;}
-  th{background:#333;color:#888;}
-  tr{border-color:#333;}
-  input.pi{background:#333;border-color:#444;color:#e8e8e0;}
+body{background:#1a1a18;color:#e8e8e0}
+.card{background:#252523;border-color:#333}
+.tab{background:#252523;border-color:#333;color:#888}
+.tab.on{background:#333;color:#e8e8e0}
+.metric{background:#333}
+.progress-wrap{background:#333}
+.progress-bar-bg{background:#444}
+.rg-card{background:#252523;border-color:#333}
+.row-kv{border-color:#333}
+th,.stbl th{background:#333;color:#888}
+tr,.stbl tr{border-color:#333}
+.stbl td{border-color:#333}
+input.pi{background:#333;border-color:#444;color:#e8e8e0}
+.gvz-thumb{background:#252523;border-color:#aaa}
 }
 </style>
 </head>
 <body>
 <div class="container">
-
 <div class="header">
-  <div>
-    <h1>Strategy Monitor v9e</h1>
-    <p class="sub" id="lastUpdated">— 価格を更新してください</p>
-  </div>
+  <div><h1>Strategy Monitor v9h</h1><p class="sub" id="lastUpdated">— 価格を更新してください</p></div>
   <button class="btn-primary" id="fetchBtn" onclick="fetchAll()">▶ 価格を更新</button>
 </div>
-
 <div class="progress-wrap" id="progressWrap">
-  <p style="font-size:12px;color:#888;" id="progressMsg">取得中...</p>
+  <p style="font-size:12px;color:#888" id="progressMsg">取得中...</p>
   <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
 </div>
-
 <div class="tabs">
   <button class="tab on" id="tb_d" onclick="sw('d')">ダッシュボード</button>
   <button class="tab" id="tb_s" onclick="sw('s')">スコア一覧</button>
@@ -78,198 +81,297 @@ input.pi{width:62px;text-align:right;padding:3px 5px;font-size:11px;border:1px s
   <button class="tab" id="tb_p" onclick="sw('p')">手動入力</button>
 </div>
 
-<!-- ダッシュボード -->
+<!-- Dashboard -->
 <div id="pn_d">
   <div class="grid2">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <p class="card-title" style="margin:0;">レジーム判定</p>
-        <span id="rgBadge" class="badge"></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <p class="card-title" style="margin:0">レジーム判定</p><span id="rgBadge" class="badge"></span>
       </div>
       <div class="rg-grid" id="rgCards"></div>
-      <p style="font-size:10px;color:#888;margin-top:7px;">Score = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30)</p>
+      <p style="font-size:10px;color:#888;margin-top:7px">Score = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30)</p>
     </div>
-    <div class="card">
-      <p class="card-title">推奨 Exposure</p>
-      <div id="expPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
-    </div>
+    <div class="card"><p class="card-title">推奨 Exposure</p><div id="expPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div></div>
   </div>
-
   <div class="alert-box" id="alertArea"></div>
-
-  <div class="card" style="margin-bottom:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <p class="card-title" style="margin:0;">スコア（Call対象）</p>
-      <span style="font-size:10px;color:#888;">緑≥10 橙≥3 赤=除外</span>
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <p class="card-title" style="margin:0">スコア（Call対象）</p><span style="font-size:10px;color:#888">緑≥10 橙≥3 赤=除外</span>
     </div>
     <div class="chart-wrap"><canvas id="scChart"></canvas></div>
   </div>
-
   <div class="grid2">
-    <div class="card">
-      <p class="card-title">GLD BCS 今日の設定</p>
-      <div id="bcsGldToday"></div>
-    </div>
-    <div class="card">
-      <p class="card-title">IWM BCS 今日の設定</p>
-      <div id="bcsIwmToday"></div>
-    </div>
+    <div class="card"><p class="card-title">GLD BCS 今日の設定</p><div id="bcsGldToday"></div></div>
+    <div class="card"><p class="card-title">IWM BCS 今日の設定</p><div id="bcsIwmToday"></div></div>
   </div>
 </div>
 
-<!-- スコア一覧 -->
-<div id="pn_s" style="display:none;">
-  <div style="background:#f5f5f0;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#888;">
-    スコア = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30) | 除外: 3日連続↓ かつ R5D&lt;-3%
-  </div>
-  <div class="card" style="padding:0;overflow-x:auto;">
-    <table>
-      <thead><tr>
-        <th>銘柄</th><th style="text-align:right;">現在値</th><th style="text-align:right;">R5D%</th>
-        <th style="text-align:right;">R1M%</th><th style="text-align:right;">IV</th>
-        <th style="text-align:right;">MA10/30</th><th style="text-align:right;">連続↓</th>
-        <th style="text-align:right;">スコア</th><th style="text-align:center;">判定</th>
-      </tr></thead>
-      <tbody id="scoreRows"></tbody>
-    </table>
+<!-- Scores -->
+<div id="pn_s" style="display:none">
+  <div style="background:#f5f5f0;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#888">スコア = 0.5×R1M + 0.5×(R5D×5) ÷ レバ − 1.0(MA10&lt;MA30) | 除外: 3日連続↓ かつ R5D&lt;-3%</div>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table><thead><tr>
+      <th>銘柄</th><th style="text-align:right">現在値</th><th style="text-align:right">R5D%</th>
+      <th style="text-align:right">R1M%</th><th style="text-align:right">IV</th>
+      <th style="text-align:right">MA10/30</th><th style="text-align:right">連続↓</th>
+      <th style="text-align:right">スコア</th><th style="text-align:center">判定</th>
+    </tr></thead><tbody id="scoreRows"></tbody></table>
   </div>
 </div>
 
-<!-- BCS設定 -->
-<div id="pn_b" style="display:none;">
-  <div class="grid2" style="margin-bottom:12px;">
+<!-- BCS -->
+<div id="pn_b" style="display:none">
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <p class="card-title" style="margin:0">GVZ（Gold Volatility Index）</p>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="gvzModeBadge" class="mode-chip"></span>
+        <label style="font-size:11px;color:#888">GVZ</label>
+        <input id="gvzInput" type="number" step="0.1" min="5" max="80" value="27"
+          style="width:60px;padding:4px 6px;font-size:13px;font-weight:600;border:1px solid #ccc;border-radius:4px;text-align:right;background:#fff"
+          oninput="onGvzChange()">
+        <span style="font-size:11px;color:#888">%</span>
+      </div>
+    </div>
+    <div style="padding:4px 2px">
+      <div class="gvz-track"><div class="gvz-thumb" id="gvzThumb"></div></div>
+      <div class="gvz-labels"><span>5</span><span>15</span><span>25</span><span>35</span><span>50+</span></div>
+    </div>
+    <div id="gvzMetrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
+  </div>
+  <div class="grid2" style="margin-bottom:12px">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <p class="card-title" style="margin:0;">GLD BCS</p>
-        <span class="badge" style="background:#FAEEDA;color:#8B6500;">証拠金 30%</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <p class="card-title" style="margin:0">GLD BCS</p>
+        <span class="badge" style="background:#FAEEDA;color:#8B6500">証拠金 30%</span>
       </div>
       <div id="bcsGldFull"></div>
     </div>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <p class="card-title" style="margin:0;">IWM BCS</p>
-        <span class="badge" style="background:#EAF3DE;color:#3B6D11;">証拠金 10%（毎日）</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <p class="card-title" style="margin:0">IWM BCS</p>
+        <span class="badge" style="background:#EAF3DE;color:#3B6D11">証拠金 10%（毎日）</span>
       </div>
       <div id="bcsIwmFull"></div>
     </div>
   </div>
-  <div style="background:#f5f5f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;">
-    GLD BCS勝率 100% · IWM BCS勝率 98.9% · GLD月次平均 +26.0% · IWM月次平均 +12.3% | 月次平均+55.2% 勝率100% 最悪月+0.9%
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p class="card-title" style="margin:0">動的ストライク早見表</p>
+      <span style="font-size:10px;color:#888">v9h — GVZ×局面ベース</span>
+    </div>
+    <div id="strikeTableWrap"></div>
+  </div>
+  <div style="background:#f5f5f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;line-height:1.7">
+    <strong style="color:#555">v9h バックテスト（2019-01〜2026-02 · 86ヶ月）</strong><br>
+    月次平均 <strong style="color:#1D9E75">+66.0%</strong> · 勝率 <strong style="color:#1D9E75">100%</strong> · 最悪月 <strong style="color:#1D9E75">+8.1%</strong> · GLD BCS勝率 100% · IWM BCS勝率 98.9%
+    <span style="color:#ccc;margin:0 6px">|</span> v9f固定7%: +55.2% · v9g動的GVZ: +58.7% · v9h動的ストライク: +66.0%
   </div>
 </div>
 
-<!-- 手動入力 -->
-<div id="pn_p" style="display:none;">
-  <p style="font-size:11px;color:#888;margin-bottom:8px;">APIから取得できなかった銘柄を手動入力します。</p>
-  <div class="card" style="padding:0;overflow-x:auto;">
-    <table>
-      <thead><tr>
-        <th>銘柄</th><th style="text-align:center;">状態</th><th style="text-align:right;">現在値</th>
-        <th style="text-align:right;">1M前</th><th style="text-align:right;">R5D%</th>
-        <th style="text-align:right;">MA10</th><th style="text-align:right;">MA30</th><th style="text-align:right;">連続↓</th>
-      </tr></thead>
-      <tbody id="priceRows"></tbody>
-    </table>
+<!-- Manual -->
+<div id="pn_p" style="display:none">
+  <p style="font-size:11px;color:#888;margin-bottom:8px">APIから取得できなかった銘柄を手動入力します。</p>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table><thead><tr>
+      <th>銘柄</th><th style="text-align:center">状態</th><th style="text-align:right">現在値</th>
+      <th style="text-align:right">1M前</th><th style="text-align:right">R5D%</th>
+      <th style="text-align:right">MA10</th><th style="text-align:right">MA30</th><th style="text-align:right">連続↓</th>
+    </tr></thead><tbody id="priceRows"></tbody></table>
   </div>
-  <button onclick="analyze()" style="margin-top:8px;font-size:11px;padding:5px 16px;border:1px solid #ccc;border-radius:4px;background:#f5f5f0;cursor:pointer;">再計算</button>
+  <button onclick="analyze()" style="margin-top:8px;font-size:11px;padding:5px 16px;border:1px solid #ccc;border-radius:4px;background:#f5f5f0;cursor:pointer">再計算</button>
 </div>
-
-</div><!-- /container -->
+</div>
 
 <script>
-const TICKERS = [
-  {tk:'GLD', lev:1, call:true,  equity:true},
-  {tk:'XLE', lev:1, call:true,  equity:true},
-  {tk:'XOP', lev:1, call:true,  equity:true},
-  {tk:'XLK', lev:1, call:true,  equity:true},
-  {tk:'XLU', lev:1, call:true,  equity:true},
-  {tk:'XLF', lev:1, call:true,  equity:true},
-  {tk:'SLV', lev:1, call:true,  equity:true},
-  {tk:'XLV', lev:1, call:true,  equity:true},
-  {tk:'SOXL',lev:3, call:true,  equity:false},
-  {tk:'SOXS',lev:3, call:true,  equity:false},
-  {tk:'TECL',lev:3, call:true,  equity:false},
-  {tk:'IWM', lev:1, call:false, equity:true},
-  {tk:'TLT', lev:1, call:false, equity:true},
-  {tk:'XLB', lev:1, call:false, equity:true},
-  {tk:'UUP', lev:1, call:false, equity:false},
-  {tk:'DBA', lev:1, call:false, equity:true},
-  {tk:'USO', lev:1, call:true,  equity:true},
-  {tk:'UNG', lev:1, call:false, equity:true},
+const TICKERS=[
+  {tk:'GLD',lev:1,call:true,equity:true},{tk:'XLE',lev:1,call:true,equity:true},
+  {tk:'XOP',lev:1,call:true,equity:true},{tk:'XLK',lev:1,call:true,equity:true},
+  {tk:'XLU',lev:1,call:true,equity:true},{tk:'XLF',lev:1,call:true,equity:true},
+  {tk:'SLV',lev:1,call:true,equity:true},{tk:'XLV',lev:1,call:true,equity:true},
+  {tk:'SOXL',lev:3,call:true,equity:false},{tk:'SOXS',lev:3,call:true,equity:false},
+  {tk:'TECL',lev:3,call:true,equity:false},{tk:'IWM',lev:1,call:false,equity:true},
+  {tk:'TLT',lev:1,call:false,equity:true},{tk:'XLB',lev:1,call:false,equity:true},
+  {tk:'UUP',lev:1,call:false,equity:false},{tk:'DBA',lev:1,call:false,equity:true},
+  {tk:'USO',lev:1,call:true,equity:true},{tk:'UNG',lev:1,call:false,equity:true},
 ]
+let P={}
+TICKERS.forEach(t=>{P[t.tk]={n:0,m1:0,r1m:0,r5d:0,ma10:0,ma30:0,streak:0,iv:0,score:null,excluded:false,src:'default'}})
+let GVZ=27.0
 
-let P = {}
-TICKERS.forEach(t => { P[t.tk] = {n:0,m1:0,r1m:0,r5d:0,ma10:0,ma30:0,streak:0,iv:0,score:null,excluded:false,src:'default'} })
-
-function calcScore(tk) {
-  const d = P[tk]; if (!d) return {score:0,excluded:false}
-  if (d.src==='live' && d.score !== null && d.score !== undefined) return {score:+d.score, excluded:!!d.excluded}
-  const lev = TICKERS.find(t=>t.tk===tk)?.lev || 1
-  let raw = (0.5*(d.r1m||0) + 0.5*((d.r5d||0)*5)) / lev
-  if (d.ma10 && d.ma30 && d.ma10 < d.ma30) raw -= 1.0
-  const excluded = (d.streak||0) >= 3 && (d.r5d||0) < -3.0
-  return {score:+raw.toFixed(1), excluded}
+function onGvzChange(){
+  GVZ=Math.max(5,Math.min(80,parseFloat(document.getElementById('gvzInput').value)||27))
+  renderBcsTab(); analyze()
 }
 
-function detectRegime() {
-  const CALL_TKS = ['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
-  const cs = {}
-  CALL_TKS.forEach(tk => { const{score,excluded}=calcScore(tk); if(!excluded) cs[tk]=score })
-  const maxSc = Math.max(...Object.values(cs),0)
-  if (maxSc<1.5) return 'DEFENSIVE'
+/* --- Math --- */
+function normCDF(x){
+  const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911
+  const s=x<0?-1:1,t=1/(1+p*Math.abs(x))
+  return .5*(1+s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x/2)))
+}
+function bsC(S,K,T,sig){
+  if(T<=0)return Math.max(S-K,0)
+  const d1=(Math.log(S/K)+.5*sig*sig*T)/(sig*Math.sqrt(T)),d2=d1-sig*Math.sqrt(T)
+  return S*normCDF(d1)-K*normCDF(d2)
+}
+const CB=bsC(100,102,1/365,.27)  // baseline: GVZ27% 1DTE +2% → ROI 7%
+function estROI(otm,Td,gvz){const T=Math.max(Td,.3)/365;return CB>0?7*bsC(100,100*(1+otm),T,gvz/100)/CB:0}
+function brPct(otm,Td,gvz){
+  const T=Math.max(Td,.3)/365,s=gvz/100
+  return(1-normCDF((Math.log(1+otm)-.5*s*s*T)/(s*Math.sqrt(T))))*100
+}
+
+/* --- GVZ helpers --- */
+function gvzLv(g){
+  if(g<15)return{l:'極低',c:'#4EAEE8',bg:'#E8F5FD'}
+  if(g<20)return{l:'低',c:'#5BBD8A',bg:'#EAF6F0'}
+  if(g<25)return{l:'通常',c:'#2E8B57',bg:'#EAF3DE'}
+  if(g<32)return{l:'高',c:'#E8A44E',bg:'#FDF3E3'}
+  if(g<42)return{l:'極高',c:'#E24B4A',bg:'#FCEEE8'}
+  return{l:'危機',c:'#9B2ECA',bg:'#F5E8FF'}
+}
+function gldMode(){
+  const gr=P.GLD?.r5d||0,ur=P.UUP?.r5d||0
+  if(gr<-1&&ur>.5)return'BEARISH'
+  if(detectRegime()==='GLD'||GVZ>25||gr>2)return'BULLISH'
+  return'NEUTRAL'
+}
+const MC={
+  BEARISH:{lbl:'⬇ BEARISH（OTM狭める）',s:'BEARISH',c:'#185FA5',bg:'#E6F1FB'},
+  NEUTRAL:{lbl:'→ NEUTRAL（標準）',s:'NEUTRAL',c:'#555',bg:'#F0F0EA'},
+  BULLISH:{lbl:'⬆ BULLISH（OTM拡大）',s:'BULLISH',c:'#C05020',bg:'#FCEEE8'},
+}
+function getOTM(mode,gvz){
+  if(mode==='BEARISH')return gvz<18?{o0:.015,o1:.015,oW:.030}:{o0:.020,o1:.020,oW:.040}
+  if(mode==='BULLISH'){
+    if(gvz<22)return{o0:.020,o1:.030,oW:.045}
+    if(gvz<30)return{o0:.020,o1:.035,oW:.055}
+    if(gvz<40)return{o0:.020,o1:.045,oW:.065}
+    return{o0:.025,o1:.055,oW:.080}
+  }
+  if(gvz<18)return{o0:.020,o1:.020,oW:.040}
+  if(gvz<25)return{o0:.020,o1:.020,oW:.050}
+  return{o0:.020,o1:.020,oW:.060}
+}
+function mthROI(gvz,mode,nW=4){
+  const{o0,o1,oW}=getOTM(mode,gvz)
+  return Math.min((nW*estROI(o0,0,gvz)+nW*estROI(o1,1,gvz)+(nW-1)*estROI(oW,4,gvz)+estROI(o0,0,gvz)),400)
+}
+
+/* --- BCS tab render --- */
+function renderBcsTab(){
+  const gvz=GVZ,mode=gldMode(),lv=gvzLv(gvz),mc=MC[mode]
+  const{o0,o1,oW}=getOTM(mode,gvz)
+  const r0=estROI(o0,0,gvz),r1=estROI(o1,1,gvz),rW=estROI(oW,4,gvz)
+  const gp=P.GLD?.n||460,ip=P.IWM?.n||249
+
+  document.getElementById('gvzThumb').style.left=Math.min((gvz-5)/45*100,100)+'%'
+  const mb=document.getElementById('gvzModeBadge')
+  mb.textContent=mc.lbl; mb.style.cssText=`background:${mc.bg};color:${mc.c}`
+
+  document.getElementById('gvzMetrics').innerHTML=[
+    {l:'GVZ水準',v:`<span style="color:${lv.c};font-weight:700">${gvz.toFixed(1)}%</span> <span style="color:${lv.c}">${lv.l}</span>`},
+    {l:`0DTE ROI (+${(o0*100).toFixed(1)}%)`,v:`<strong style="color:#1D9E75">${r0.toFixed(1)}%</strong>`},
+    {l:`1DTE ROI (+${(o1*100).toFixed(1)}%)`,v:`<strong style="color:#1D9E75">${r1.toFixed(1)}%</strong>`},
+    {l:`週またぎ ROI (+${(oW*100).toFixed(1)}%)`,v:`<strong style="color:#1D9E75">${rW.toFixed(1)}%</strong>`},
+  ].map(d=>`<div class="metric"><div class="metric-label">${d.l}</div><div class="metric-value">${d.v}</div></div>`).join('')
+
+  const rows=[{dte:'0DTE',T:0,otm:o0,roi:r0},{dte:'1DTE',T:1,otm:o1,roi:r1},{dte:'週またぎ(4DTE)',T:4,otm:oW,roi:rW}]
+  document.getElementById('strikeTableWrap').innerHTML=`
+    <table class="stbl"><thead><tr>
+      <th style="text-align:left">DTE</th><th>GLD現値</th><th>OTM%</th>
+      <th>ショートK</th><th>ロングK(+$1)</th><th>推定ROI</th><th>ブリーチ確率</th>
+    </tr></thead><tbody>${rows.map(r=>{
+      const Ks=(gp*(1+r.otm)).toFixed(2),Kl=(gp*(1+r.otm)+1).toFixed(2)
+      const br=brPct(r.otm,r.T,gvz),bc=br<5?'#1D9E75':br<12?'#BA7517':'#E24B4A'
+      return`<tr>
+        <td style="font-weight:500;text-align:left">${r.dte}</td>
+        <td style="color:#aaa">${gp.toFixed(2)}</td>
+        <td><span class="otm-chip" style="background:${mc.bg};color:${mc.c}">+${(r.otm*100).toFixed(1)}%</span></td>
+        <td style="font-weight:700;color:#1D9E75">${Ks}</td>
+        <td style="color:#888">${Kl}</td>
+        <td style="font-weight:600;color:#1D9E75">${r.roi.toFixed(1)}%</td>
+        <td style="color:${bc};font-weight:500">${br.toFixed(1)}%</td>
+      </tr>`
+    }).join('')}</tbody></table>
+    <p style="font-size:10px;color:#aaa;margin-top:5px">ブリーチ確率: 緑&lt;5% · 橙&lt;12% · 赤≥12%（BSモデル推定）</p>`
+
+  const rv=(l,v,hi)=>`<div class="row-kv"><span style="color:#888">${l}</span><span style="font-weight:${hi?500:400};color:${hi?'#1D9E75':'inherit'}">${v}</span></div>`
+  document.getElementById('bcsGldFull').innerHTML=
+    rv('GLD現値',gp.toFixed(2))+
+    rv(`0DTE K (+${(o0*100).toFixed(1)}%)`,(gp*(1+o0)).toFixed(2),true)+
+    rv(`1DTE K (+${(o1*100).toFixed(1)}%)`,(gp*(1+o1)).toFixed(2),true)+
+    rv(`週またぎ K (+${(oW*100).toFixed(1)}%)`,(gp*(1+oW)).toFixed(2),true)+
+    rv('GLD局面',`${mc.s} — GVZ${gvz.toFixed(1)}%(${lv.l})`)+
+    rv('月次推定ROI(4週)',mthROI(gvz,mode,4).toFixed(0)+'%')+
+    rv('暴落スキップ','前日-5%超')+rv('勝率','100%')
+  document.getElementById('bcsIwmFull').innerHTML=
+    rv('IWM現値',ip.toFixed(2))+rv('0DTE',(ip*1.015).toFixed(2),true)+
+    rv('1DTE',(ip*1.045).toFixed(2),true)+rv('2DTE',(ip*1.045).toFixed(2),true)+
+    rv('暴落日','0DTEのみ')+rv('勝率','98.9%')
+}
+
+/* --- Strategy logic --- */
+function calcScore(tk){
+  const d=P[tk];if(!d)return{score:0,excluded:false}
+  if(d.src==='live'&&d.score!=null)return{score:+d.score,excluded:!!d.excluded}
+  const lev=TICKERS.find(t=>t.tk===tk)?.lev||1
+  let raw=(0.5*(d.r1m||0)+0.5*((d.r5d||0)*5))/lev
+  if(d.ma10&&d.ma30&&d.ma10<d.ma30)raw-=1
+  return{score:+raw.toFixed(1),excluded:(d.streak||0)>=3&&(d.r5d||0)<-3}
+}
+function detectRegime(){
+  const CT=['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
+  const cs={};CT.forEach(tk=>{const{score,excluded}=calcScore(tk);if(!excluded)cs[tk]=score})
+  const mx=Math.max(...Object.values(cs),0);if(mx<1.5)return'DEFENSIVE'
   const en=Math.max(cs.XLE||0,cs.XOP||0,cs.USO||0)
   const gk=cs.XLK||0,gd=cs.GLD||0,sl=cs.SOXL||0,ss=cs.SOXS||0,tc=cs.TECL||0
-  if (sl>=3&&gk>=2&&sl>gd&&sl>en) return 'GROWTH_LEV'
-  if (tc>=3&&gk>=2&&tc>gd&&tc>en&&tc>sl) return 'GROWTH_LEV'
-  if (ss>=3&&gk<=-2) return 'DEFENSIVE_SEMI'
-  if (en>=3&&en>=gk&&en>=gd) return 'ENERGY'
-  if (gk>=3&&gk>=gd&&gk>=en) return 'GROWTH'
-  if (gd>=1.5) return 'GLD'
-  return 'GROWTH'
+  if(sl>=3&&gk>=2&&sl>gd&&sl>en)return'GROWTH_LEV'
+  if(tc>=3&&gk>=2&&tc>gd&&tc>en&&tc>sl)return'GROWTH_LEV'
+  if(ss>=3&&gk<=-2)return'DEFENSIVE_SEMI'
+  if(en>=3&&en>=gk&&en>=gd)return'ENERGY'
+  if(gk>=3&&gk>=gd&&gk>=en)return'GROWTH'
+  if(gd>=1.5)return'GLD'
+  return'GROWTH'
 }
-
-function getEquityTop3() {
-  const EQ=['GLD','SLV','XLE','XOP','XLK','XLU','XLF','XLV','XLB','TLT','IWM','DBA','USO','UNG']
-  return EQ.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
+function getEq3(){
+  return['GLD','SLV','XLE','XOP','XLK','XLU','XLF','XLV','XLB','TLT','IWM','DBA','USO','UNG']
+    .map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
     .filter(d=>!d.excluded&&d.score>=10).sort((a,b)=>b.score-a.score).slice(0,3)
 }
-
-function getCallTk(regime) {
+function getCallTk(regime){
   const pref={GLD:['GLD','SLV'],ENERGY:['XOP','XLE','USO'],GROWTH:['XLK','XLF','XLV'],
     GROWTH_LEV:['SOXL','TECL','XLK'],DEFENSIVE_SEMI:['SOXS','XLV','XLU'],DEFENSIVE:['XLU','XLV']}[regime]||[]
-  for (const tk of pref){const{score,excluded}=calcScore(tk);if(!excluded&&score>=1.5)return tk}
-  const CALL=['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
-  const cands=CALL.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
-    .filter(d=>!d.excluded&&d.score>=1.0).sort((a,b)=>b.score-a.score)
-  return cands[0]?.tk||null
+  for(const tk of pref){const{score,excluded}=calcScore(tk);if(!excluded&&score>=1.5)return tk}
+  return['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
+    .map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score,excluded}})
+    .filter(d=>!d.excluded&&d.score>=1).sort((a,b)=>b.score-a.score)[0]?.tk||null
 }
-
-function getSoxsPutAction(regime) {
-  if (regime==='DEFENSIVE_SEMI') return {action:'利確推奨',detail:'DEFENSIVE_SEMI: SOXSが上昇する局面。利確タイミング。',c:'#C05020',bg:'#FCEEE8'}
+function getSoxsAct(regime){
+  if(regime==='DEFENSIVE_SEMI')return{action:'利確推奨',detail:'DEFENSIVE_SEMI: SOXS上昇局面',c:'#C05020',bg:'#FCEEE8'}
   const sc=calcScore('SOXL').score
-  if (sc>=3||regime==='GROWTH_LEV') return {action:'新規 / 保有継続',detail:`SOXL sc:${sc.toFixed(1)} — 半導体強い。SOXS減価進行中。360日/ATM×50%`,c:'#0F6E56',bg:'#EAF3DE'}
-  return {action:'保有継続',detail:`非DEFENSIVE_SEMI。構造的減価を待つ（${regime}）`,c:'#185FA5',bg:'#E6F1FB'}
-}
-
-function rv(l,v,hi) {
-  return `<div class="row-kv"><span style="color:#888">${l}</span><span style="font-weight:${hi?500:400};color:${hi?'#1D9E75':'inherit'}">${v}</span></div>`
+  if(sc>=3||regime==='GROWTH_LEV')return{action:'新規/保有継続',detail:`SOXL sc:${sc.toFixed(1)} 360日/ATM×50%`,c:'#0F6E56',bg:'#EAF3DE'}
+  return{action:'保有継続',detail:`非DEFENSIVE_SEMI（${regime}）`,c:'#185FA5',bg:'#E6F1FB'}
 }
 
 let scInst=null
-
-function analyze() {
-  const regime=detectRegime(),ctk=getCallTk(regime),eq3=getEquityTop3(),pa=getSoxsPutAction(regime)
-  const gp=P.GLD?.n||460, ip=P.IWM?.n||249
+function analyze(){
+  const regime=detectRegime(),ctk=getCallTk(regime),eq3=getEq3(),pa=getSoxsAct(regime)
+  const gp=P.GLD?.n||460,ip=P.IWM?.n||249
+  const mode=gldMode(),mc=MC[mode]
+  const{o0,o1,oW}=getOTM(mode,GVZ)
+  const K0=(gp*(1+o0)).toFixed(2),K1=(gp*(1+o1)).toFixed(2),KW=(gp*(1+oW)).toFixed(2)
+  const r0=estROI(o0,0,GVZ).toFixed(1),r1=estROI(o1,1,GVZ).toFixed(1),rW=estROI(oW,4,GVZ).toFixed(1)
   const dow=new Date().getDay(),isEntry=[1,3,5].includes(dow)
   const dowLabel=['日','月','火','水','木','金','土'][dow]
+  const rv=(l,v,hi)=>`<div class="row-kv"><span style="color:#888">${l}</span><span style="font-weight:${hi?500:400};color:${hi?'#1D9E75':'inherit'}">${v}</span></div>`
 
   const RGC={GLD:'#B8960C',ENERGY:'#2E8B57',GROWTH:'#185FA5',GROWTH_LEV:'#6B2FA0',DEFENSIVE_SEMI:'#C05020',DEFENSIVE:'#888'}
   const RGLBL={GLD:'①GLD',ENERGY:'②Energy',GROWTH:'③Growth',GROWTH_LEV:'③-L 3x',DEFENSIVE_SEMI:'④-S Semi',DEFENSIVE:'④Def'}
   const RGBG={GLD:'#FAEEDA',ENERGY:'#EAF3DE',GROWTH:'#E6F1FB',GROWTH_LEV:'#F3E8FF',DEFENSIVE_SEMI:'#FCEEE8',DEFENSIVE:'#F1EFE8'}
-
   const rb=document.getElementById('rgBadge')
-  rb.textContent=RGLBL[regime]; rb.style.cssText=`background:${RGBG[regime]};color:${RGC[regime]};font-size:11px;font-weight:500;padding:2px 10px;border-radius:4px;`
-
+  rb.textContent=RGLBL[regime];rb.style.cssText=`background:${RGBG[regime]};color:${RGC[regime]};font-size:11px;font-weight:500;padding:2px 10px;border-radius:4px`
   document.getElementById('rgCards').innerHTML=[
     {k:'GLD',l:'①GLD',c:'#B8960C',bg:'#FAEEDA'},{k:'ENERGY',l:'②Energy',c:'#2E8B57',bg:'#EAF3DE'},
     {k:'GROWTH',l:'③Growth',c:'#185FA5',bg:'#E6F1FB'},{k:'GROWTH_LEV',l:'③-L 3x',c:'#6B2FA0',bg:'#F3E8FF'},
@@ -279,54 +381,61 @@ function analyze() {
       <p style="font-size:10px;font-weight:500;color:${d.c};margin:0">${d.l}${a?' ◀':''}</p></div>`
   }).join('')
 
-  const CALL_TKS=['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
-  const excl=CALL_TKS.filter(tk=>calcScore(tk).excluded)
-  const warned=CALL_TKS.filter(tk=>{const d=P[tk];return d?.ma10&&d?.ma30&&d.ma10<d.ma30&&!calcScore(tk).excluded})
+  const CT=['GLD','XLE','XOP','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL','USO']
+  const excl=CT.filter(tk=>calcScore(tk).excluded)
+  const warned=CT.filter(tk=>{const d=P[tk];return d?.ma10&&d?.ma30&&d.ma10<d.ma30&&!calcScore(tk).excluded})
   const alerts=[]
-  if(excl.length) alerts.push(`🚫 除外: ${excl.join(', ')}`)
-  if(warned.length) alerts.push(`⚠ MA10&lt;MA30: ${warned.join(', ')}`)
+  if(excl.length)alerts.push(`🚫 除外: ${excl.join(', ')}`)
+  if(warned.length)alerts.push(`⚠ MA10&lt;MA30: ${warned.join(', ')}`)
   const ae=document.getElementById('alertArea')
-  if(alerts.length){ae.style.display='block';ae.innerHTML=alerts.map(a=>`<div style="font-size:11px;">${a}</div>`).join('')}
+  if(alerts.length){ae.style.display='block';ae.innerHTML=alerts.map(a=>`<div>${a}</div>`).join('')}
   else ae.style.display='none'
 
   const eq3txt=eq3.length?eq3.map(d=>`${d.tk}(${d.score.toFixed(0)})`).join(' / '):'（≥10なし）'
   document.getElementById('expPanel').innerHTML=[
-    {l:'Call 20%',v:ctk||'なし',sub:ctk?`IV${((P[ctk]?.iv||0)*100).toFixed(0)}% sc${calcScore(ctk).score.toFixed(1)}`:'全候補除外',c:'#6B2FA0',bg:'rgba(107,47,160,0.07)'},
-    {l:'現物（参考・スコア≥10）',v:eq3txt,sub:eq3.length?'スコア比例 計30%':'現物ゼロ',c:'#0F6E56',bg:'rgba(29,158,117,0.07)'},
-    {l:'GLD BCS 30%',v:isEntry?'エントリー可':'非エントリー日',sub:isEntry?(dow===5?`週またぎ ${(gp*1.06).toFixed(1)}`:`0DTE ${(gp*1.02).toFixed(1)} / 1DTE ${(gp*1.035).toFixed(1)}`):'月・水・金のみ',c:'#8B6500',bg:'rgba(186,117,23,0.07)'},
-    {l:'IWM BCS 10%',v:'毎日エントリー可',sub:`0DTE ${(ip*1.015).toFixed(1)} / 1-2DTE ${(ip*1.045).toFixed(1)}`,c:'#3B6D11',bg:'rgba(99,153,34,0.07)'},
+    {l:'Call 20%',v:ctk||'なし',sub:ctk?`IV${((P[ctk]?.iv||0)*100).toFixed(0)}% sc${calcScore(ctk).score.toFixed(1)}`:'全候補除外',c:'#6B2FA0',bg:'rgba(107,47,160,.07)'},
+    {l:'現物（参考・スコア≥10）',v:eq3txt,sub:eq3.length?'スコア比例 計30%':'現物ゼロ',c:'#0F6E56',bg:'rgba(29,158,117,.07)'},
+    {l:`GLD BCS 30% GVZ=${GVZ.toFixed(1)}% ${mc.s}`,v:isEntry?'エントリー可':'非エントリー日',
+      sub:isEntry?(dow===5?`週またぎ +${(oW*100).toFixed(1)}% K${KW} ROI≈${rW}%`:`0DTE +${(o0*100).toFixed(1)}% K${K0} / 1DTE +${(o1*100).toFixed(1)}% K${K1}`):'月・水・金のみ',
+      c:'#8B6500',bg:'rgba(186,117,23,.07)'},
+    {l:'IWM BCS 10%',v:'毎日エントリー可',sub:`0DTE ${(ip*1.015).toFixed(1)} / 1-2DTE ${(ip*1.045).toFixed(1)}`,c:'#3B6D11',bg:'rgba(99,153,34,.07)'},
     {l:'SOXS Put 3%',v:pa.action,sub:pa.detail,c:pa.c,bg:pa.bg},
   ].map(e=>`<div class="exp-card" style="background:${e.bg}">
     <p style="font-size:10px;font-weight:500;color:${e.c};margin:0 0 2px">${e.l}</p>
-    <p style="font-size:12px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.v}</p>
-    <p style="font-size:10px;color:#888;margin:2px 0 0;line-height:1.4;">${e.sub}</p>
+    <p style="font-size:12px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.v}</p>
+    <p style="font-size:10px;color:#888;margin:2px 0 0;line-height:1.4">${e.sub}</p>
   </div>`).join('')
 
-  const CHART_TKS=['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
-  const sd=CHART_TKS.map(tk=>{const{score,excluded}=calcScore(tk);return{tk,score:excluded?0:score,excluded}})
-  if(scInst) scInst.destroy()
+  const sd=['GLD','XLE','XOP','USO','XLK','XLU','XLF','SLV','XLV','SOXL','SOXS','TECL']
+    .map(tk=>{const{score,excluded}=calcScore(tk);return{tk,s:excluded?0:score,excluded}})
+  if(scInst)scInst.destroy()
   scInst=new Chart(document.getElementById('scChart'),{type:'bar',
     data:{labels:sd.map(d=>d.excluded?d.tk+'✕':d.tk),
-      datasets:[{data:sd.map(d=>d.score),
-        backgroundColor:sd.map(d=>d.excluded?'rgba(226,75,74,0.5)':d.score>=10?'rgba(29,158,117,0.8)':d.score>=3?'rgba(186,117,23,0.7)':'rgba(136,136,136,0.4)'),
-        borderWidth:0}]},
+      datasets:[{data:sd.map(d=>d.s),backgroundColor:sd.map(d=>d.excluded?'rgba(226,75,74,.5)':d.s>=10?'rgba(29,158,117,.8)':d.s>=3?'rgba(186,117,23,.7)':'rgba(136,136,136,.4)'),borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{font:{size:9}},grid:{color:'rgba(128,128,128,0.1)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}})
+      scales:{y:{ticks:{font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}})
 
   if(!isEntry){
-    document.getElementById('bcsGldToday').innerHTML=`<p style="color:#888;font-size:12px;">本日(${dowLabel})は非エントリー日</p>`
-    document.getElementById('bcsIwmToday').innerHTML=`<p style="color:#888;font-size:12px;">IWMは毎日エントリー可</p>`
+    document.getElementById('bcsGldToday').innerHTML=`<p style="color:#888;font-size:12px">本日(${dowLabel})は非エントリー日</p>`
+    document.getElementById('bcsIwmToday').innerHTML=`<p style="color:#888;font-size:12px">IWMは毎日エントリー可</p>`
   }else if(dow===5){
-    document.getElementById('bcsGldToday').innerHTML=rv('GLD',gp.toFixed(2))+rv('週またぎ +6%',(gp*1.06).toFixed(2),true)+rv('ROI目標','7%')
+    document.getElementById('bcsGldToday').innerHTML=
+      rv('GLD現値',gp.toFixed(2))+
+      rv(`週またぎ +${(oW*100).toFixed(1)}% [${mc.s}/GVZ${GVZ.toFixed(0)}%]`,KW,true)+
+      rv('推定ROI',rW+'%')+rv('ブリーチ確率',brPct(oW,4,GVZ).toFixed(1)+'%')
     document.getElementById('bcsIwmToday').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE +1.5%',(ip*1.015).toFixed(2),true)+rv('1DTE +4.5%',(ip*1.045).toFixed(2),true)+rv('2DTE +4.5%',(ip*1.045).toFixed(2),true)
   }else{
-    document.getElementById('bcsGldToday').innerHTML=rv('GLD',gp.toFixed(2))+rv('0DTE +2%',(gp*1.02).toFixed(2),true)+rv('1DTE +3.5%',(gp*1.035).toFixed(2),true)
+    document.getElementById('bcsGldToday').innerHTML=
+      rv('GLD現値',gp.toFixed(2))+
+      rv(`0DTE +${(o0*100).toFixed(1)}% [${mc.s}/GVZ${GVZ.toFixed(0)}%]`,K0,true)+
+      rv(`1DTE +${(o1*100).toFixed(1)}%`,K1,true)+
+      rv('推定ROI (0DTE / 1DTE)',`${r0}% / ${r1}%`)+
+      rv('ブリーチ確率 (1DTE)',brPct(o1,1,GVZ).toFixed(1)+'%')
     document.getElementById('bcsIwmToday').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE +1.5%',(ip*1.015).toFixed(2),true)+rv('1DTE +4.5%',(ip*1.045).toFixed(2),true)+rv('2DTE +4.5%',(ip*1.045).toFixed(2),true)
   }
-  document.getElementById('bcsGldFull').innerHTML=rv('GLD',gp.toFixed(2))+rv('月・水 0DTE',(gp*1.02).toFixed(2),true)+rv('月・水 1DTE',(gp*1.035).toFixed(2),true)+rv('金 週またぎ',(gp*1.06).toFixed(2),true)+rv('暴落スキップ','前日-5%超')+rv('勝率','100%')
-  document.getElementById('bcsIwmFull').innerHTML=rv('IWM',ip.toFixed(2))+rv('0DTE',(ip*1.015).toFixed(2),true)+rv('1DTE',(ip*1.045).toFixed(2),true)+rv('2DTE',(ip*1.045).toFixed(2),true)+rv('暴落日','0DTEのみ')+rv('勝率','98.9%')
+  renderBcsTab()
 
-  const tb=document.getElementById('scoreRows'); tb.innerHTML=''
+  const tb=document.getElementById('scoreRows');tb.innerHTML=''
   TICKERS.map(t=>{const{score,excluded}=calcScore(t.tk);return{...t,score,excluded,d:P[t.tk]||{}}})
     .sort((a,b)=>b.score-a.score).forEach(t=>{
     const sc_c=t.excluded?'#E24B4A':t.score>=10?'#1D9E75':t.score>=3?'#BA7517':'#888'
@@ -335,13 +444,10 @@ function analyze() {
       :t.score>=10?`<span class="badge" style="background:#EAF3DE;color:#0F6E56">${t.equity?'現物◎':'Call◎'}</span>`
       :t.score>=3?`<span class="badge" style="background:#FAEEDA;color:#8B6500">候補</span>`
       :''
-    const live=t.d.src==='live'
-    const rc=v=>v>=0?'#1D9E75':'#E24B4A'
-    const ma10=t.d.ma10||0,ma30=t.d.ma30||0
-    const nDisp=t.d.n?t.d.n.toFixed(2):'—'
-    tb.innerHTML+=`<tr style="${t.excluded?'opacity:0.55':''}">
+    const live=t.d.src==='live',rc=v=>v>=0?'#1D9E75':'#E24B4A',ma10=t.d.ma10||0,ma30=t.d.ma30||0
+    tb.innerHTML+=`<tr style="${t.excluded?'opacity:.55':''}">
       <td style="font-weight:500"><span style="font-size:9px;color:${live?'#1D9E75':'#bbb'}">●</span> ${t.tk}${t.lev>1?` <span style="font-size:10px;color:#888">×${t.lev}</span>`:''}</td>
-      <td style="text-align:right">${nDisp}</td>
+      <td style="text-align:right">${t.d.n?t.d.n.toFixed(2):'—'}</td>
       <td style="text-align:right;color:${rc(t.d.r5d||0)}">${(t.d.r5d||0)>0?'+':''}${(t.d.r5d||0).toFixed(1)}%</td>
       <td style="text-align:right;color:${rc(t.d.r1m||0)}">${(t.d.r1m||0)>0?'+':''}${(t.d.r1m||0).toFixed(1)}%</td>
       <td style="text-align:right;color:#888">${((t.d.iv||0)*100).toFixed(0)}%</td>
@@ -351,10 +457,9 @@ function analyze() {
       <td style="text-align:center">${badge}</td>
     </tr>`
   })
-
-  const pr=document.getElementById('priceRows'); pr.innerHTML=''
+  const pr=document.getElementById('priceRows');pr.innerHTML=''
   TICKERS.forEach(t=>{
-    const d=P[t.tk]||{}; const live=d.src==='live'
+    const d=P[t.tk]||{},live=d.src==='live'
     pr.innerHTML+=`<tr>
       <td style="font-weight:500;font-size:12px">${t.tk}</td>
       <td style="text-align:center;font-size:11px;color:${live?'#1D9E75':'#BA7517'}">${live?'取得済':'手動'}</td>
@@ -368,31 +473,55 @@ function analyze() {
   })
 }
 
-async function fetchAll() {
+async function fetchAll(){
   const btn=document.getElementById('fetchBtn')
-  btn.disabled=true; btn.textContent='取得中...'
+  btn.disabled=true;btn.textContent='取得中...'
   document.getElementById('progressWrap').style.display='block'
   document.getElementById('progressBar').style.width='20%'
   document.getElementById('progressMsg').textContent='取得中...'
-  try {
-    // 同一オリジン（/api/prices）から取得
+  try{
     const res=await fetch('/api/prices',{signal:AbortSignal.timeout(15000)})
-    if(!res.ok) throw new Error('HTTP '+res.status)
+    if(!res.ok)throw new Error('HTTP '+res.status)
     const data=await res.json()
-    document.getElementById('progressBar').style.width='90%'
+    document.getElementById('progressBar').style.width='70%'
     let ok=0
-    // APIレスポンスの全キーを直接Pに上書き
-    Object.keys(data).forEach(tk=>{
-      const d=data[tk]
-      if(d&&d.n){ P[tk]={...d,src:'live'}; ok++ }
-    })
+    Object.keys(data).forEach(tk=>{const d=data[tk];if(d&&d.n){P[tk]={...d,src:'live'};ok++}})
+
+    // GVZ自動取得（^GVZ がAPIレスポンスに含まれる場合）
+    if(data['GVZ']&&data['GVZ'].n){
+      const gvzFromApi=data['GVZ'].n
+      gvzVal=gvzFromApi
+      document.getElementById('gvzInput').value=gvzFromApi.toFixed(2)
+    } else if(data['^GVZ']&&data['^GVZ'].n){
+      const gvzFromApi=data['^GVZ'].n
+      gvzVal=gvzFromApi
+      document.getElementById('gvzInput').value=gvzFromApi.toFixed(2)
+    } else {
+      // APIに含まれない場合はYahoo Finance CSVから直接フェッチ試行
+      try{
+        const gvzRes=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EGVZ?interval=1d&range=5d',
+          {signal:AbortSignal.timeout(8000)})
+        if(gvzRes.ok){
+          const gvzJson=await gvzRes.json()
+          const closes=gvzJson?.chart?.result?.[0]?.indicators?.quote?.[0]?.close
+          if(closes&&closes.length){
+            const latest=closes.filter(v=>v!=null).pop()
+            if(latest){
+              gvzVal=latest
+              document.getElementById('gvzInput').value=latest.toFixed(2)
+              ok++
+            }
+          }
+        }
+      }catch(e){/* GVZフェッチ失敗は無視 */}
+    }
+
     document.getElementById('progressBar').style.width='100%'
-    document.getElementById('progressMsg').textContent=`完了 — ${ok}件取得`
-    document.getElementById('lastUpdated').textContent=`最終更新: ${new Date().toLocaleString('ja-JP')} (${ok}件)`
-  } catch(e) {
-    document.getElementById('progressMsg').textContent='取得失敗: '+e.message
-  }
-  btn.disabled=false; btn.textContent='▶ 価格を更新'
+    const gvzDisp=gvzVal>0?` GVZ=${gvzVal.toFixed(1)}%`:''
+    document.getElementById('progressMsg').textContent=`完了 — ${ok}件取得${gvzDisp}`
+    document.getElementById('lastUpdated').textContent=`最終更新: ${new Date().toLocaleString('ja-JP')} (${ok}件${gvzDisp})`
+  }catch(e){document.getElementById('progressMsg').textContent='取得失敗: '+e.message}
+  btn.disabled=false;btn.textContent='▶ 価格を更新'
   analyze()
   setTimeout(()=>{document.getElementById('progressWrap').style.display='none'},3000)
 }
@@ -402,10 +531,11 @@ function sw(t){
     document.getElementById('pn_'+id).style.display=id===t?'block':'none'
     document.getElementById('tb_'+id).classList.toggle('on',id===t)
   })
+  if(t==='b')renderBcsTab()
 }
-
 analyze()
 </script>
 </body>
 </html>
+
 
